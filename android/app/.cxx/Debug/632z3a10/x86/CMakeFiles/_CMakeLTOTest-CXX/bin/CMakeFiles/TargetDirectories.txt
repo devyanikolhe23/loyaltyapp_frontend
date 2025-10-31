@@ -1,0 +1,4 @@
+/home/bcs/Pictures/loyaltyapp/frontend/loyaltyapp_frontend/android/app/.cxx/Debug/632z3a10/x86/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/foo.dir
+/home/bcs/Pictures/loyaltyapp/frontend/loyaltyapp_frontend/android/app/.cxx/Debug/632z3a10/x86/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/boo.dir
+/home/bcs/Pictures/loyaltyapp/frontend/loyaltyapp_frontend/android/app/.cxx/Debug/632z3a10/x86/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/edit_cache.dir
+/home/bcs/Pictures/loyaltyapp/frontend/loyaltyapp_frontend/android/app/.cxx/Debug/632z3a10/x86/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/rebuild_cache.dir

@@ -1,15 +1,71 @@
-import React from 'react';
+import { DeviceEventEmitter,Alert } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-
+import React,{ useState, useEffect } from 'react';
 import ProfileScreen from '../screens/user/ProfileScreen';
 import ServicesStack from './ServiceStack';
 import BookingStack from './BookingStack';
 import SupportStack from './SupportStack';
 import BottomTabs from './BottomTabs';
-import RegisterScreen from '../screens/user/RegisterScreen';
+import AuthStack from './AuthStack';
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
+
 const Drawer = createDrawerNavigator();
 
 export default function DrawerNavigator() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // ✅ Check login status initially
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const user = await AsyncStorage.getItem('user');
+      setIsLoggedIn(!!user);
+    };
+    checkLoginStatus();
+  }, []);
+
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener('userLoggedIn', async () => {
+      const user = await AsyncStorage.getItem('user');
+      setIsLoggedIn(!!user);
+    });
+    return () => subscription.remove();
+  }, []);
+
+  // ✅ Logout handler (with API call)
+  const handleLogout = async (navigation) => {
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        onPress: async () => {
+          try {
+            const refreshToken = await AsyncStorage.getItem('refreshToken');
+
+            if (refreshToken) {
+            
+              const response = await axios.post('http://192.168.1.8:8000/api/logout/', {
+                refresh: refreshToken,
+              });
+              console.log('Logout API Response:', response.data);
+            }
+
+            // Clear all stored login data
+            await AsyncStorage.multiRemove(['user', 'accessToken', 'refreshToken']);
+            setIsLoggedIn(false);
+
+            Alert.alert('Success', 'Logout successful!');
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Auth', params: { screen: 'Login' } }],
+            });
+          } catch (error) {
+            console.log('Logout Error:', error.response?.data || error.message);
+            Alert.alert('Error', 'Logout failed. Please try again.');
+          }
+        },
+      },
+    ]);
+  };
   return (
     <Drawer.Navigator
       initialRouteName="Home"
@@ -24,7 +80,24 @@ export default function DrawerNavigator() {
       <Drawer.Screen name="Services" component={ServicesStack} />
       <Drawer.Screen name="Bookings" component={BookingStack} />
       <Drawer.Screen name="Support" component={SupportStack} />
-      <Drawer.Screen name="Register" component={RegisterScreen} />
+      {/* 👇 Conditional Login/Logout item */}
+      {isLoggedIn ? (
+        <Drawer.Screen
+          name="Logout"
+          component={() => null}
+          options={{
+            drawerLabel: 'Logout',
+          }}
+          listeners={({ navigation }) => ({
+            drawerItemPress: (e) => {
+              e.preventDefault(); // Stop navigation
+              handleLogout(navigation); // Call API + logout
+            },
+          })}
+        />
+      ) : (
+        <Drawer.Screen name="Login" component={AuthStack} />
+      )}
       
 
     </Drawer.Navigator>
