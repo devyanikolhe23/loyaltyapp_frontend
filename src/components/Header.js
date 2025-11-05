@@ -21,8 +21,10 @@ export default function Header({ title, showBack }) {
           <Icon name="menu" size={24} color="#222" />
         </TouchableOpacity>
       )}
-      <Text style={styles.title}>{title}</Text>
-      <Icon name="notifications-outline" size={24} color="#333" />
+        <Text style={styles.title}>{title}</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("NotificationSettingsScreen")}>
+          <Icon name="notifications-outline" size={24} color="#333" />
+        </TouchableOpacity>
     </View>
   );
 }

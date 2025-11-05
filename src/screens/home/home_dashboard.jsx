@@ -95,7 +95,7 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Explore</Text>
         <View style={styles.exploreGrid}>
           <TouchableOpacity style={styles.exploreCard}
-          onPress={() => navigation.navigate("ServiceScreen")}>
+          onPress={() => navigation.navigate("Services")}>
             <Icon name="car-outline" size={24} color="#2B70F7" />
             <Text style={styles.exploreText}>Services</Text>
           </TouchableOpacity>

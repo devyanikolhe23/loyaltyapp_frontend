@@ -5,9 +5,9 @@ import BottomTabs from './BottomTabs';
 import ServiceScreen from '../screens/services/ServiceScreen';
 import ProfileScreen from '../screens/user/ProfileScreen';
 import SupportStack from './SupportStack';
-import PromotionsScreen from '../screens/rewards/PromotionsScreen';
 import ShowroomsScreen from '../screens/showroom/ShowroomsScreen';
-import PromotionsDetailsScreen from '../screens/rewards/PromotionDetails';
+import NotificationSettingsScreen from '../screens/user/NotificationsScreen';
+
 
 const Stack = createNativeStackNavigator();
 
@@ -27,21 +27,16 @@ export default function StackNavigator() {
   component={SupportStack}
   options={{ headerShown: false }}
 />
- <Stack.Screen 
-        name="PromotionsScreen" 
-        component={PromotionsScreen} 
-        options={{ headerShown: false }} 
-      />
-      <Stack.Screen 
-        name="PromotionsDetails" 
-        component={PromotionsDetailsScreen} 
-        options={{ headerShown: false }} 
-      />
-       <Stack.Screen 
+<Stack.Screen 
         name="ShowroomsScreen" 
         component={ShowroomsScreen} 
         options={{ headerShown: false }} 
-      />
+      />      
+<Stack.Screen 
+        name="NotificationSettingsScreen" 
+        component={NotificationSettingsScreen} 
+        options={{ headerShown: false }} 
+      />      
     
     </Stack.Navigator>
   );

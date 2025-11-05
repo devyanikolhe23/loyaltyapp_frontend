@@ -4,7 +4,7 @@ import Header from "../../components/Header";
 import ServiceCard from "../../components/service/ServiceCard";
 import axios from "axios";
 
-const BASE_URL = "http://192.168.1.14:8000"; 
+const BASE_URL = "http://192.168.1.8:8000"; 
 
 const ServiceScreen = () => {
   const [services, setServices] = useState([]);
@@ -17,7 +17,17 @@ const ServiceScreen = () => {
   const fetchServices = async () => {
     try {
       const response = await axios.get(`${BASE_URL}/services/`);
+       if (Array.isArray(response.data.results)) {
+      setServices(response.data.results);
+    } 
+    // If backend returns a direct list [...]
+    else if (Array.isArray(response.data)) {
       setServices(response.data);
+    } 
+    else {
+      setServices([]); // fallback
+    }
+     
     } catch (error) {
       console.error("Error fetching services:", error);
     } finally {
