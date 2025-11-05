@@ -1,9 +1,12 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 const BookingDetailsScreen = ({ route, navigation }) => {
-  const { booking } = route.params || {}; // booking details passed from previous screen
+  const { booking } = route.params || {};
 
   return (
     <ScrollView style={styles.container}>
@@ -15,31 +18,90 @@ const BookingDetailsScreen = ({ route, navigation }) => {
         <Text style={styles.headerText}>Booking Details</Text>
       </View>
 
-      {/* Booking Card */}
+      {/* Booking Summary */}
       <View style={styles.card}>
-        <Text style={styles.title}>{booking?.serviceName || "Car Wash Deluxe"}</Text>
-        <Text style={styles.subText}>Booking ID: {booking?.id || "#123456"}</Text>
-        <Text style={styles.subText}>Date: {booking?.date || "30 Sept, 2025"}</Text>
-        <Text style={styles.subText}>Time: {booking?.time || "11:30 AM"}</Text>
-        <Text style={styles.subText}>Status: {booking?.status || "Pending"}</Text>
+        <Text style={styles.title}>{booking?.serviceName || "Service"}</Text>
+
+        <Text style={styles.subText}>Booking ID: {booking?.id}</Text>
+        <Text style={styles.subText}>Date: {booking?.appointment_date}</Text>
+        <Text style={styles.subText}>Time: {booking?.appointment_time}</Text>
+
+        <Text style={[styles.subText, { fontWeight: "600" }]}>
+          Status: <Text style={styles.status}>{booking?.status}</Text>
+        </Text>
       </View>
 
-      {/* Customer Info */}
+      {/* Vehicle Details */}
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Customer Information</Text>
-        <Text style={styles.subText}>Name: {booking?.customerName || "John Doe"}</Text>
-        <Text style={styles.subText}>Phone: {booking?.phone || "+91 9876543210"}</Text>
-        <Text style={styles.subText}>Car: {booking?.carModel || "Honda City 2022"}</Text>
+        <Text style={styles.sectionTitle}>Vehicle Information</Text>
+        <Text style={styles.subText}>Make: {booking?.vehicle_make}</Text>
+        <Text style={styles.subText}>Model: {booking?.vehicle_model}</Text>
+        <Text style={styles.subText}>Year: {booking?.vehicle_year}</Text>
       </View>
 
       {/* Action Buttons */}
       <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.primaryBtn}>
+        <TouchableOpacity
+          style={styles.primaryBtn}
+          onPress={() =>
+            navigation.navigate("Services", {
+              screen: "BookingServiceScreen",
+              params: { isEdit: true, booking },
+            })
+          }
+        >
           <Text style={styles.btnText}>Reschedule</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.secondaryBtn}>
-          <Text style={styles.btnText}>Cancel</Text>
+
+        <TouchableOpacity
+          style={styles.secondaryBtn}
+          onPress={() => {
+            Alert.alert(
+              "Cancel Booking",
+              "Are you sure you want to cancel this booking?",
+              [
+                { text: "No" },
+                {
+                  text: "Yes",
+                  style: "destructive",
+                  onPress: async () => {
+                    try {
+                      const token = await AsyncStorage.getItem("access");
+
+                      await axios.delete(
+                        `http://192.168.1.12:8000/bookings/${booking.id}/`,
+                        { headers: { Authorization: `Bearer ${token}` } }
+                      );
+
+                      Alert.alert(
+                        "Cancelled",
+                        "Your booking has been removed.",
+                        [
+                          {
+                            text: "OK",
+                            onPress: () => {
+                              navigation.navigate("Bookings", {
+                                screen: "MyBookings",
+                                params: { refresh: true },
+                              });
+                            }
+                          }
+                        ]
+                      );
+                    } catch (error) {
+                      console.log("Delete Error:", error.response?.data || error);
+                      Alert.alert("Error", "Failed to cancel booking");
+                    }
+                  }
+                }
+              ]
+            );
+          }}
+        >
+          <Text style={styles.btnText}>Cancel Booking</Text>
         </TouchableOpacity>
+
+
       </View>
     </ScrollView>
   );
@@ -59,6 +121,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 18, fontWeight: "700", marginBottom: 6, color: "#2c3e50" },
   sectionTitle: { fontSize: 16, fontWeight: "600", marginBottom: 8, color: "#34495e" },
   subText: { fontSize: 14, color: "#555", marginBottom: 4 },
+  status: { textTransform: "capitalize" },
   buttonRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 20 },
   primaryBtn: {
     flex: 1,

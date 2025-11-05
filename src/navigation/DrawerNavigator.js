@@ -1,13 +1,13 @@
-import { DeviceEventEmitter,Alert } from 'react-native';
+import { DeviceEventEmitter, Alert } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import React,{ useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProfileScreen from '../screens/user/ProfileScreen';
 import ServicesStack from './ServiceStack';
 import BookingStack from './BookingStack';
 import SupportStack from './SupportStack';
 import BottomTabs from './BottomTabs';
 import AuthStack from './AuthStack';
-import AsyncStorage from '@react-native-async-storage/async-storage'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Drawer = createDrawerNavigator();
 
@@ -32,40 +32,42 @@ export default function DrawerNavigator() {
   }, []);
 
   // ✅ Logout handler (with API call)
+  // ✅ FIXED LOGOUT FUNCTION
   const handleLogout = async (navigation) => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
       {
-        text: 'Logout',
+        text: "Logout",
         onPress: async () => {
           try {
-            const refreshToken = await AsyncStorage.getItem('refreshToken');
+            const refreshToken = await AsyncStorage.getItem("refreshToken");
 
             if (refreshToken) {
-            
-              const response = await axios.post('http://192.168.1.8:8000/api/logout/', {
-                refresh: refreshToken,
+              await axios.post("http://192.168.1.8:8000/api/logout/", {
+                refresh: refreshToken
               });
-              console.log('Logout API Response:', response.data);
             }
 
-            // Clear all stored login data
-            await AsyncStorage.multiRemove(['user', 'accessToken', 'refreshToken']);
+            // ✅ Remove correct stored tokens
+            await AsyncStorage.multiRemove(["user", "accessToken", "refreshToken"]);
+
             setIsLoggedIn(false);
 
-            Alert.alert('Success', 'Logout successful!');
             navigation.reset({
               index: 0,
-              routes: [{ name: 'Auth', params: { screen: 'Login' } }],
+              routes: [{ name: "Auth", params: { screen: "Login" } }],
             });
+
           } catch (error) {
-            console.log('Logout Error:', error.response?.data || error.message);
-            Alert.alert('Error', 'Logout failed. Please try again.');
+            console.log("Logout Error:", error.response?.data || error.message);
+            Alert.alert("Error", "Logout failed. Please try again.");
           }
         },
       },
     ]);
   };
+
+
   return (
     <Drawer.Navigator
       initialRouteName="Home"
@@ -98,7 +100,7 @@ export default function DrawerNavigator() {
       ) : (
         <Drawer.Screen name="Login" component={AuthStack} />
       )}
-      
+
 
     </Drawer.Navigator>
   );

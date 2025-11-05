@@ -4,7 +4,7 @@ import Header from "../../components/Header";
 import ServiceCard from "../../components/service/ServiceCard";
 import axios from "axios";
 
-const BASE_URL = "http://192.168.1.8:8000"; 
+const BASE_URL = "http://192.168.1.12:8000"; 
 
 const ServiceScreen = () => {
   const [services, setServices] = useState([]);
@@ -71,60 +71,3 @@ const styles = StyleSheet.create({
   loaderContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
 });
 
-// import React from "react";
-// import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
-// import Ionicons from 'react-native-vector-icons/Ionicons';
-// import Header from "../../components/Header";
-// import ServiceCard from "../../components/service/ServiceCard";
-
-// const services = [
-//   {
-//     id: 1,
-//     title: "Full Car Wash",
-//     description: "Exterior wash, interior vacuum, window cleaning, tire shine.",
-//     price: 50,
-//     image: require("../../assets/images/full_car_wash.jpg"),
-//     tag: "Popular",
-//   },
-//   {
-//     id: 2,
-//     title: "Interior Detailing",
-//     description: "Deep cleaning of seats, carpets, dashboard, and vents.",
-//     price: 80,
-//     image: require("../../assets/images/interior_detailing.webp"),
-//   },
-//   {
-//     id: 3,
-//     title: "Exterior Polishing",
-//     description: "Paint correction, swirl removal, and ceramic coating.",
-//     price: 120,
-//     image: require("../../assets/images/exterior_polishing.jpg"),
-//   },
-//   {
-//     id: 4,
-//     title: "Engine Bay Cleaning",
-//     description: "Degreasing and cleaning of the engine compartment.",
-//     price: 60,
-//     image: require("../../assets/images/engine_bay.webp"),
-//   },
-// ];
-
-// const ServiceScreen = () => {
-//   return (
-//     <View style={styles.container}>
-//       <Header title="Services" showBack={false} />
-//       <ScrollView contentContainerStyle={styles.scrollContainer}>
-//         {services.map((service) => (
-//           <ServiceCard key={service.id} {...service} />
-//         ))}
-//       </ScrollView>
-//     </View>
-//   );
-// };
-
-// export default ServiceScreen;
-
-// const styles = StyleSheet.create({
-//   container: { flex: 1, backgroundColor: "#F9F9F9" },
-//   scrollContainer: { padding: 16 },
-// });

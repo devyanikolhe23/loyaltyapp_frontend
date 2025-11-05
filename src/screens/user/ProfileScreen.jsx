@@ -111,13 +111,13 @@ const ProfileScreen = ({ navigation }) => {
             <Entypo name="chevron-right" size={20} color="#888" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.item}>
+          <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('LoyaltyRewardsScreen')}>
             <FontAwesome5 name="medal" size={18} color="#444" />
             <Text style={styles.itemText}>Loyalty Rewards</Text>
             <Entypo name="chevron-right" size={20} color="#888" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.item}>
+          <TouchableOpacity style={styles.item}onPress={() => navigation.navigate('ReferFriendScreen')}>
             <Ionicons name="person-add-outline" size={20} color="#444" />
             <Text style={styles.itemText}>Refer a Friend</Text>
             <Entypo name="chevron-right" size={20} color="#888" />

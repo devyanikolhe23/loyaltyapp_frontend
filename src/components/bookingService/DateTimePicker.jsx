@@ -1,28 +1,36 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
-export default function DateTimePickerComponent() {
+export default function DateTimePickerComponent({ defaultDate, defaultTime, onSelectDateTime }) {
   const [isPickerVisible, setPickerVisible] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDateTime, setSelectedDateTime] = useState(null);
+
+  useEffect(() => {
+    // ✅ If editing, pre-fill displayed date/time
+    if (defaultDate && defaultTime) {
+      setSelectedDateTime(`${defaultDate} ${defaultTime}`);
+    }
+  }, [defaultDate, defaultTime]);
 
   const showPicker = () => setPickerVisible(true);
   const hidePicker = () => setPickerVisible(false);
 
   const handleConfirm = (date) => {
-    setSelectedDate(date);
     hidePicker();
+    const formattedDate = date.toISOString().split("T")[0]; // YYYY-MM-DD
+    const formattedTime = date.toTimeString().split(" ")[0]; // HH:MM:SS
+    setSelectedDateTime(`${formattedDate} ${formattedTime}`);
+    onSelectDateTime(formattedDate, formattedTime);
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Choose Date & Time</Text>
+    <View>
+      <Text style={styles.sectionTitle}>Select Date & Time</Text>
 
-      <TouchableOpacity style={styles.dateButton} onPress={showPicker}>
+      <TouchableOpacity style={styles.dateBox} onPress={showPicker}>
         <Text style={styles.dateText}>
-          {selectedDate
-            ? selectedDate.toLocaleString()
-            : "Select appointment date & time"}
+          {selectedDateTime ? selectedDateTime : "Choose Date & Time"}
         </Text>
       </TouchableOpacity>
 
@@ -31,22 +39,19 @@ export default function DateTimePickerComponent() {
         mode="datetime"
         onConfirm={handleConfirm}
         onCancel={hidePicker}
-        minimumDate={new Date()}
-        display={Platform.OS === "ios" ? "inline" : "default"}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { marginBottom: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: "600", marginVertical: 10 },
-  dateButton: {
-    padding: 15,
-    borderRadius: 5,
+  sectionTitle: { fontSize: 18, fontWeight: "600", marginBottom: 8 },
+  dateBox: {
+    padding: 14,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#ccc",
-    backgroundColor: "#f9f9f9",
+    marginBottom: 20,
   },
   dateText: { fontSize: 16, color: "#333" },
 });

@@ -1,16 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
 
-export default function VehicleDetailsForm() {
+export default function VehicleDetailsForm({ defaultVehicle, onChangeVehicle }) {
   const [form, setForm] = useState({
     make: "",
     model: "",
     year: "",
-    license: "",
   });
 
+  // ✅ Pre-fill when editing
+  useEffect(() => {
+    if (defaultVehicle) {
+      setForm(defaultVehicle);
+      onChangeVehicle(defaultVehicle);
+    }
+  }, [defaultVehicle]);
+
   const handleChange = (field, value) => {
-    setForm({ ...form, [field]: value });
+    const updatedForm = { ...form, [field]: value };
+    setForm(updatedForm);
+    onChangeVehicle(updatedForm);
   };
 
   return (
@@ -41,13 +50,6 @@ export default function VehicleDetailsForm() {
         value={form.year}
         onChangeText={(val) => handleChange("year", val)}
       />
-
-      {/* <TextInput
-        style={styles.input}
-        placeholder="License Plate"
-        value={form.license}
-        onChangeText={(val) => handleChange("license", val)}
-      /> */}
     </View>
   );
 }
@@ -62,6 +64,6 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
     fontSize: 16,
-   
+    color: "#000000ff",
   },
 });

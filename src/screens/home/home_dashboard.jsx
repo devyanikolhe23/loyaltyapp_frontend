@@ -32,7 +32,7 @@ export default function HomeScreen() {
             </Text>
             <TouchableOpacity
               style={styles.bookNowButton}
-              onPress={() => navigation.navigate("Bookings")}
+              onPress={() => navigation.navigate("BookingServiceScreen")}
             >
               <Text style={styles.bookNowText}>Book Now</Text>
             </TouchableOpacity>

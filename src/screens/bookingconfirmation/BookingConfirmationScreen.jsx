@@ -1,12 +1,15 @@
 import React from "react";
 import { View, ScrollView, StyleSheet, Text } from "react-native";
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from "react-native-vector-icons/Ionicons";
 import BookingDetailsCard from "../../components/bookingconfirmation/BookingDetailsCard";
 import MapCard from "../../components/bookingconfirmation/MapCard";
 import ActionButtons from "../../components/bookingconfirmation/ActionButtons";
 import DetailRow from "../../components/bookingconfirmation/DetailRow";
 
-export default function BookingConfirmationScreen() {
+export default function BookingConfirmationScreen({ route }) {
+  // ✅ Extract booking object safely
+  const booking = route?.params?.booking;
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -21,14 +24,20 @@ export default function BookingConfirmationScreen() {
           We’ve received your booking and it’s scheduled. You’ll get a reminder
           24 hours before.
         </Text>
-        <DetailRow/>
+
+        {/* ✅ Only Fetch Details Inside BookingDetailsCard */}
+        <BookingDetailsCard booking={booking} />
+
+        {/* Map */}
         <MapCard />
-        <BookingDetailsCard />
+
+        {/* Action Buttons (Home / View Bookings etc.) */}
         <ActionButtons />
       </ScrollView>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
