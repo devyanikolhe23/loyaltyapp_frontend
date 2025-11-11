@@ -8,17 +8,19 @@ export default function ServiceSelection({ selectedService, onSelectService }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios
-      .get("http://192.168.1.7:8000/services/")
-      .then((res) => {
-        setServices(res.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.log("Error fetching services:", err);
-        setLoading(false);
-      });
-  }, []);
+  axios
+    .get("http://192.168.1.15:8000/services/")
+    .then(res => {
+      console.log("Fetched services response:", res.data);
+      setServices(res.data.results); // ✅ Access array inside results
+      setLoading(false);
+    })
+    .catch(err => {
+      console.error("Error fetching services:", err);
+      setLoading(false);
+    });
+}, []);
+
 
   useEffect(() => {
     // ✅ When editing, auto-select existing service

@@ -19,7 +19,7 @@ const ResetPasswordScreen = () => {
     }
 
     try {
-      await axios.post('http://192.168.1.12:8000/api/password-reset/confirm/', {
+      await axios.post('http://192.168.1.15:8000/api/password-reset/confirm/', {
         uid,
         token,
         new_password: newPassword,

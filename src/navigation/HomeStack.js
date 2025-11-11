@@ -2,9 +2,12 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from '../screens/home/home_dashboard';
 import BookingServiceScreen from '../screens/booking/BookingServiceScreen';
-import BookingConfirmationScreen from '../screens/bookingconfirmation/BookingConfirmationScreen';
-
+import PromotionsPage from '../screens/rewards/PromotionsScreen';
+import PromotionsDetailsScreen from '../screens/rewards/PromotionDetails';
+import NotificationSettingsScreen from '../screens/user/NotificationsScreen'
+import ServiceStack from '../navigation/ServiceStack';
 const Stack = createStackNavigator();
+
 
 export default function HomeStackNavigator() {
   return (

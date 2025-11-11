@@ -18,8 +18,8 @@ const MyBookingsScreen = ({ navigation }) => {
       const token = await AsyncStorage.getItem("access");
       if (!token) return;
 
-      const servicesRes = await axios.get("http://192.168.1.12:8000/services/");
-      const bookingsRes = await axios.get("http://192.168.1.12:8000/bookings/", {
+      const servicesRes = await axios.get("http://192.168.1.15:8000/services/");
+      const bookingsRes = await axios.get("http://192.168.1.15:8000/bookings/", {
         headers: { Authorization: `Bearer ${token}` },
       });
 

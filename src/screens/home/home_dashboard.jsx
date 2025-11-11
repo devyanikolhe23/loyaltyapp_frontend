@@ -13,6 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 import Header from '../../components/Header';
 export default function HomeScreen() {
   const navigation = useNavigation();
+  console.log(navigation.getState());
 
   return (
     <SafeAreaView style={styles.container}>

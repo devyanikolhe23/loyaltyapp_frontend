@@ -8,7 +8,7 @@ const VerifyOTPScreen = ({ navigation, route }) => {
 
   const handleVerify = async () => {
   try {
-    const res = await axios.post("http://192.168.1.12:8000/verify-code/", { email, code });
+    const res = await axios.post("http://192.168.1.15:8000/verify-code/", { email, code });
 
     const { uid, token } = res.data;
 

@@ -17,47 +17,6 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // const handleLogin = async () => {
-  //   if (!username || !password) {
-  //     Alert.alert('Error', 'Please enter both username and password');
-  //     return;
-  //   }
-
-  //   setLoading(true);
-  //   try {
-  //     const response = await axios.post('http://192.168.1.6:8000/api/login/', {
-  //       username: username.trim(),
-  //       password: password,
-  //     });
-  //      console.log('Login API Response:', response.data);
-
-  //      const {access,refresh, user} =response.data;
-
-  //     console.log('Login Success:', response.data);
-  //     Alert.alert('Success', 'Login successful!', [
-  //       {
-  //         text: 'OK',
-  //         onPress: async () => {
-
-  //           if (response?.data?.user) {
-  //             await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
-  //           } else {
-  //             console.warn('⚠️ No user data found in login response');
-  //             await AsyncStorage.setItem('user', JSON.stringify({ loggedIn: true }));
-  //           }
-  //           DeviceEventEmitter.emit('userLoggedIn');
-  //           navigation.getParent()?.navigate('Home');
-  //         },
-  //       },
-  //     ]);
-
-  //   } catch (error) {
-  //     console.log('Login Error:', error.response?.data || error.message);
-  //     Alert.alert('Error', error.response?.data?.message || 'Incorrect Password');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
  const handleLogin = async () => {
   if (!username || !password) {
@@ -68,12 +27,10 @@ const LoginScreen = ({ navigation }) => {
   setLoading(true);
 
   try {
-    const response = await axios.post("http://192.168.1.12:8000/api/login/", {
+    const response = await axios.post("http://192.168.1.16:8000/api/login/", {
       username: username.trim(),
       password: password,
     });
-
-    console.log("✅ Login API Response:", response.data);
 
     const access = response.data.tokens.access;
     const refresh = response.data.tokens.refresh;
@@ -83,16 +40,18 @@ const LoginScreen = ({ navigation }) => {
     await AsyncStorage.setItem("refresh", refresh);
     await AsyncStorage.setItem("user", JSON.stringify(user));
 
+    // 🚀 Notify drawer to switch Login -> Logout
     DeviceEventEmitter.emit("userLoggedIn");
 
-    Alert.alert("Success", "Login successful!", [
-      {
-        text: "OK",
-        onPress: () => navigation.getParent()?.navigate("Home"),
-      },
-    ]);
+    Alert.alert("Success", "Login successful!");
+
+    // ✅ Redirect to Home immediately
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Home" }],
+    });
+
   } catch (error) {
-    console.log("❌ Login Error:", error.response?.data || error.message);
     Alert.alert("Error", error.response?.data?.message || "Invalid Credentials");
   } finally {
     setLoading(false);
@@ -151,11 +110,15 @@ const LoginScreen = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.footerButton}
-            onPress={() => navigation.navigate('Home')} // Continue as guest
+            onPress={async () => {
+              await AsyncStorage.setItem('guest', 'true'); // mark as guest
+              navigation.navigate('Home');
+            }}
             activeOpacity={0.7}
           >
             <Text style={styles.footerText}>Continue as Guest</Text>
           </TouchableOpacity>
+
         </View>
       </View>
     </ImageBackground>

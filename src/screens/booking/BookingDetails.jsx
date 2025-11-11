@@ -69,7 +69,7 @@ const BookingDetailsScreen = ({ route, navigation }) => {
                       const token = await AsyncStorage.getItem("access");
 
                       await axios.delete(
-                        `http://192.168.1.12:8000/bookings/${booking.id}/`,
+                        `http://192.168.1.15:8000/bookings/${booking.id}/`,
                         { headers: { Authorization: `Bearer ${token}` } }
                       );
 
