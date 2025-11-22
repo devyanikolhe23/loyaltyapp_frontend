@@ -9,6 +9,7 @@ import ShowroomsScreen from '../screens/showroom/ShowroomsScreen';
 import NotificationSettingsScreen from '../screens/user/NotificationsScreen';
 
 
+
 const Stack = createNativeStackNavigator();
 
 export default function StackNavigator() {
@@ -16,28 +17,28 @@ export default function StackNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MainTabs" component={BottomTabs} />
      
- <Stack.Screen
-  name="ProfileScreen"
-  component={ProfileScreen}
-  options={{ headerShown: false }}
-/>
+    <Stack.Screen
+      name="ProfileScreen"
+      component={ProfileScreen}
+      options={{ headerShown: false }}
+    />
 
-<Stack.Screen
-  name="SupportScreen"
-  component={SupportStack}
-  options={{ headerShown: false }}
-/>
-<Stack.Screen 
-        name="ShowroomsScreen" 
-        component={ShowroomsScreen} 
-        options={{ headerShown: false }} 
-      />      
-<Stack.Screen 
-        name="NotificationSettingsScreen" 
-        component={NotificationSettingsScreen} 
-        options={{ headerShown: false }} 
-      />      
+    <Stack.Screen
+      name="SupportScreen"
+      component={SupportStack}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen 
+            name="ShowroomsScreen" 
+            component={ShowroomsScreen} 
+            options={{ headerShown: false }} 
+          />      
+    <Stack.Screen 
+            name="NotificationSettingsScreen" 
+            component={NotificationSettingsScreen} 
+            options={{ headerShown: false }} 
+          />      
     
-    </Stack.Navigator>
+  </Stack.Navigator>
   );
 }

@@ -1,7 +1,9 @@
 /home/bcs/Pictures/loyaltyapp/frontend/loyaltyapp_frontend/node_modules/@react-native-async-storage/async-storage/android/build/generated/source/codegen/jni/CMakeLists.txt
 /home/bcs/Pictures/loyaltyapp/frontend/loyaltyapp_frontend/node_modules/@react-native-community/datetimepicker/android/build/generated/source/codegen/jni/CMakeLists.txt
+/home/bcs/Pictures/loyaltyapp/frontend/loyaltyapp_frontend/node_modules/@react-native-picker/picker/android/src/main/jni/CMakeLists.txt
 /home/bcs/Pictures/loyaltyapp/frontend/loyaltyapp_frontend/node_modules/react-native-gesture-handler/android/build/generated/source/codegen/jni/CMakeLists.txt
 /home/bcs/Pictures/loyaltyapp/frontend/loyaltyapp_frontend/node_modules/react-native-image-picker/android/build/generated/source/codegen/jni/CMakeLists.txt
+/home/bcs/Pictures/loyaltyapp/frontend/loyaltyapp_frontend/node_modules/react-native-localize/android/build/generated/source/codegen/jni/CMakeLists.txt
 /home/bcs/Pictures/loyaltyapp/frontend/loyaltyapp_frontend/node_modules/react-native-reanimated/android/build/generated/source/codegen/jni/CMakeLists.txt
 /home/bcs/Pictures/loyaltyapp/frontend/loyaltyapp_frontend/node_modules/react-native-safe-area-context/android/src/main/jni/CMakeLists.txt
 /home/bcs/Pictures/loyaltyapp/frontend/loyaltyapp_frontend/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt

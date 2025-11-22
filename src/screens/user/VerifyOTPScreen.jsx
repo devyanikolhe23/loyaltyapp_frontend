@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, Alert } from 'react-native';
 import axios from 'axios';
-
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`;
 const VerifyOTPScreen = ({ navigation, route }) => {
   const { email } = route.params;
   const [code, setCode] = useState('');
 
   const handleVerify = async () => {
   try {
-    const res = await axios.post("http://192.168.1.15:8000/verify-code/", { email, code });
+    const res = await axios.post(`${BASE_URL}/verify-code/`, { email, code });
 
     const { uid, token } = res.data;
 

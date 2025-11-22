@@ -4,6 +4,7 @@ import ServiceScreen from "../screens/services/ServiceScreen";
 import ServiceDetailScreen from "../screens/services/ServiceDetailScreen";
 import BookingServiceScreen from "../screens/booking/BookingServiceScreen";
 import BookingConfirmationScreen from "../screens/bookingconfirmation/BookingConfirmationScreen";
+
 const Stack = createNativeStackNavigator();
 
 export default function ServiceStack() {
@@ -21,6 +22,7 @@ export default function ServiceStack() {
 />
 <Stack.Screen name="BookingServiceScreen" component={BookingServiceScreen} />
 <Stack.Screen name="BookingConfirmationScreen" component={BookingConfirmationScreen} />
+
     </Stack.Navigator>
   );
 }

@@ -12,34 +12,53 @@ export default function BookingDetailsCard({ booking }) {
     );
   }
 
+  // ✅ Use service_title from API directly
+  const servicesText = booking.service_title || "N/A";
+
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Booking Details</Text>
 
-      <DetailRow label="Service" value={booking?.service_title} />
+      {/* Services */}
+      <DetailRow label="Services" value={servicesText} />
 
-      <DetailRow label="Date" value={booking.appointment_date} />
+      {/* Date & Time */}
+      <DetailRow label="Date" value={booking.appointment_date || "N/A"} />
+      <DetailRow label="Time" value={booking.appointment_time || "N/A"} />
 
-      <DetailRow label="Time" value={booking.appointment_time} />
-
-      <DetailRow 
-        label="Vehicle" 
-        value={`${booking.vehicle_make} ${booking.vehicle_model} (${booking.vehicle_year})`} 
+      {/* Vehicle Info */}
+      <DetailRow
+        label="Vehicle"
+        value={
+          booking.vehicle_make && booking.vehicle_model && booking.vehicle_year
+            ? `${booking.vehicle_make} ${booking.vehicle_model} (${booking.vehicle_year})`
+            : "N/A"
+        }
       />
 
-      {/* If your API returns price, include it; otherwise remove */}
-      {booking.price && <DetailRow label="Price" value={`₹${booking.price}`} />}
+      {/* Price */}
+      {booking.total_price && (
+        <DetailRow label="Total Price" value={`₹${booking.total_price}`} />
+      )}
 
-      {booking.status && <DetailRow label="Status" value={booking.status} />}
+      {/* Status */}
+      {booking.status && (
+        <DetailRow
+          label="Status"
+          value={
+            booking.status.charAt(0).toUpperCase() + booking.status.slice(1)
+          }
+        />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#fff",
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 12,
     marginVertical: 10,
     shadowColor: "#000",
     shadowOpacity: 0.1,
@@ -48,7 +67,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
     marginBottom: 10,
   },
 });

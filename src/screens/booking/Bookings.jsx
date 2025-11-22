@@ -1,11 +1,20 @@
-
-
 import React, { useState, useCallback } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import axios from "axios";
+import Header from "../../components/Header";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`;
+
 
 const MyBookingsScreen = ({ navigation }) => {
   const [bookings, setBookings] = useState([]);
@@ -16,102 +25,160 @@ const MyBookingsScreen = ({ navigation }) => {
       setLoading(true);
 
       const token = await AsyncStorage.getItem("access");
-      if (!token) return;
+      if (!token) {
+        setBookings([]);
+        return;
+      }
 
-      const servicesRes = await axios.get("http://192.168.1.15:8000/services/");
-      const bookingsRes = await axios.get("http://192.168.1.15:8000/bookings/", {
+      const bookingsRes = await axios.get(`${BASE_URL}/bookings/?no_pagination=true`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const servicesMap = {};
-      servicesRes.data.forEach(s => (servicesMap[s.id] = s.title));
+      // Make sure we handle pagination safely
+      const bookingsData = Array.isArray(bookingsRes.data)
+        ? bookingsRes.data
+        : bookingsRes.data.results || [];
 
-      const formattedBookings = bookingsRes.data.map(b => ({
+      // Map bookings using `service_title` from serializer
+      const formattedBookings = bookingsData.map((b) => ({
         ...b,
-        serviceName: servicesMap[b.service] || "Unknown Service",
+        serviceName: b.service_title || "Booked",
       }));
 
       setBookings(formattedBookings);
     } catch (error) {
-      console.log("Error loading bookings:", error.response?.data || error);
+      console.log("❌ Error loading bookings:", error.response?.data || error.message);
+      setBookings([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Re-fetch data every time screen is focused
   useFocusEffect(
     useCallback(() => {
       fetchData();
     }, [])
   );
 
-  const getStatusStyle = (status) => {
+  const getStatusColor = (status) => {
     switch (status) {
-      case "pending": return { color: "#e67e22" };
-      case "confirmed": return { color: "#27ae60" };
-      case "completed": return { color: "#2980b9" };
-      default: return { color: "#555" };
+      case "pending":
+        return "#f39c12";
+      case "confirmed":
+      case "in_progress":
+        return "#27ae60";
+      case "ready_for_pickup":
+        return "#2980b9";
+      case "completed":
+        return "#2ecc71";
+      case "cancelled":
+        return "#e74c3c";
+      default:
+        return "#f39c12";
     }
   };
 
-  const renderBooking = ({ item }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate("BookingDetails", { booking: item })}
-    >
-      <View style={styles.row}>
-        <Ionicons name="car-outline" size={24} color="#3498db" />
-        <View style={{ marginLeft: 12 }}>
-          <Text style={styles.title}>{item.serviceName}</Text>
-          <Text style={styles.subText}>{item.appointment_date} • {item.appointment_time}</Text>
-          <Text style={[styles.status, getStatusStyle(item.status)]}>{item.status}</Text>
-        </View>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color="#555" />
-    </TouchableOpacity>
-  );
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "pending":
+        return "Booked";
+      case "confirmed":
+      case "in_progress":
+        return "In Progress";
+      case "ready_for_pickup":
+        return "Ready for Pickup";
+      case "completed":
+        return "Completed";
+      case "cancelled":
+        return "Cancelled";
+      default:
+        return "Booked";
+    }
+  };
 
-  if (loading) return <ActivityIndicator size="large" style={{ marginTop: 30 }} />;
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#0066FF" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerText}>My Bookings</Text>
-      </View>
+      <Header title="My Bookings" showBack={false} />
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {bookings.length === 0 ? (
+          <Text style={styles.emptyText}>No bookings found.</Text>
+        ) : (
+          bookings.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.card}
+              onPress={() =>
+                navigation.navigate("BookingDetails", { booking: { ...item, service_title: item.serviceName } })
+              }
+            >
+              <View style={styles.iconBox}>
+                <Ionicons name="car-outline" size={28} color="#3498db" />
+              </View>
 
-      {bookings.length === 0 ? (
-        <Text style={{ textAlign: "center", marginTop: 40, fontSize: 16, color: "#555" }}>
-          No bookings found.
-        </Text>
-      ) : (
-        <FlatList data={bookings} keyExtractor={item => item.id.toString()} renderItem={renderBooking} />
-      )}
+              <View style={styles.details}>
+                <Text style={styles.serviceTitle}>{item.serviceName}</Text>
+                <Text style={styles.dateText}>
+                  {item.appointment_date} • {item.appointment_time}
+                </Text>
+
+                <View style={styles.statusRow}>
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={16}
+                    color={getStatusColor(item.status)}
+                    style={{ marginRight: 5 }}
+                  />
+                  <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
+                    {getStatusLabel(item.status)}
+                  </Text>
+                </View>
+              </View>
+
+              <Ionicons name="chevron-forward" size={20} color="#999" />
+            </TouchableOpacity>
+          ))
+        )}
+      </ScrollView>
     </View>
   );
 };
 
+export default MyBookingsScreen;
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9f9f9", padding: 16 },
-  headerRow: { flexDirection: "row", alignItems: "center", marginBottom: 20 },
-  headerText: { fontSize: 22, fontWeight: "700", marginLeft: 12 },
+  container: { flex: 1, backgroundColor: "#F9F9F9" },
+  scrollContainer: { padding: 16 },
+  loaderContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  emptyText: { textAlign: "center", marginTop: 40, fontSize: 16, color: "#555" },
   card: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 14,
+    flexDirection: "row",
+    alignItems: "center",
     elevation: 3,
   },
-  row: { flexDirection: "row", alignItems: "center" },
-  title: { fontSize: 16, fontWeight: "600", color: "#2c3e50" },
-  subText: { fontSize: 13, color: "#555" },
-  status: { fontSize: 13, fontWeight: "600", marginTop: 4 }
+  iconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: "#EAF4FF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
+  },
+  details: { flex: 1 },
+  serviceTitle: { fontSize: 16, fontWeight: "700", color: "#2c3e50", marginBottom: 4 },
+  dateText: { fontSize: 13, color: "#555" },
+  statusRow: { flexDirection: "row", alignItems: "center", marginTop: 6 },
+  statusText: { fontSize: 13, fontWeight: "600", letterSpacing: 0.5 },
 });
-
-export default MyBookingsScreen;

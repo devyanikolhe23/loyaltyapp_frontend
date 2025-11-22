@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from "react-nat
 import Header from "../../components/Header";
 import ServiceCard from "../../components/service/ServiceCard";
 import axios from "axios";
-
-const BASE_URL = "http://192.168.1.15:8000"; 
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`; 
 
 const ServiceScreen = () => {
   const [services, setServices] = useState([]);

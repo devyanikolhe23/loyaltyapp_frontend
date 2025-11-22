@@ -1,7 +1,7 @@
 import { Alert, DeviceEventEmitter } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import React, { useState, useEffect } from 'react';
-import ProfileScreen from '../screens/user/ProfileScreen';
+import ProfileStack from './ProfileStack';
 import ServicesStack from './ServiceStack';
 import BookingStack from './BookingStack';
 import SupportStack from './SupportStack';
@@ -9,11 +9,12 @@ import BottomTabs from './BottomTabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
-
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`;
 const Drawer = createDrawerNavigator();
 
 export default function DrawerNavigator() {
-  const navigation = useNavigation(); // ✅ FIX
+  const navigation = useNavigation(); 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -45,7 +46,7 @@ export default function DrawerNavigator() {
 
             if (refreshToken && accessToken) {
               await axios.post(
-                "http://192.168.1.16:8000/api/logout/",
+                `${BASE_URL}/api/logout/`,
                 { refresh: refreshToken },
                 {
                   headers: {
@@ -91,7 +92,7 @@ export default function DrawerNavigator() {
       }}
     >
       <Drawer.Screen name="Home" component={BottomTabs} />
-      <Drawer.Screen name="Profile" component={ProfileScreen} />
+      <Drawer.Screen name="Profile" component={ProfileStack} />
       <Drawer.Screen name="Services" component={ServicesStack} />
       <Drawer.Screen name="Bookings" component={BookingStack} />
       <Drawer.Screen name="Support" component={SupportStack} />
