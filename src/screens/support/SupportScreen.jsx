@@ -1,7 +1,7 @@
 import React from "react";
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import { View, Text, ScrollView, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 import FaqTile from "../../components/support/FaqTile";
 import ContactTile from "../../components/support/ContactTile";
@@ -17,28 +17,46 @@ const SupportScreen = () => {
   return (
     <View style={styles.container}>
       <Header title="Support" showBack={false} />
-      {/* Header (same as ServiceScreen) */}
-      {/* <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={colors.dark} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Support</Text>
-        <View style={styles.headerSpacer} />
-      </View> */}
 
-      {/* Scrollable Content */}
       <ScrollView contentContainerStyle={globalStyles.contentContainer}>
         {/* FAQ Section */}
         <Text style={textStyles.subHeading}>Frequently Asked Questions</Text>
-        <FaqTile question="How do I book a service?" />
-        <FaqTile question="What payment methods do you accept?" />
-        <FaqTile question="Can I cancel or reschedule my booking?" />
+
+        <FaqTile
+          question="How do I book a service?"
+          answer="You can easily book a service by navigating to the 'Book Service' section in the app, selecting your preferred service type, date, and time, and confirming your booking."
+        />
+
+        <FaqTile
+          question="What payment methods do you accept?"
+          answer="We accept all major payment methods, including credit/debit cards, UPI, and digital wallets such as Google Pay and Paytm."
+        />
+
+        <FaqTile
+          question="Can I cancel or reschedule my booking?"
+          answer="Yes, you can cancel or reschedule your booking up to 24 hours before the scheduled service time. Go to the 'My Bookings' section and select 'Cancel' or 'Reschedule'."
+        />
 
         {/* Contact Section */}
         <Text style={textStyles.subHeading}>Contact Us</Text>
-        <ContactTile icon="chatbubble-ellipses-outline" text="Chat with us" />
-        <ContactTile icon="call-outline" text="Call us" />
-        <ContactTile icon="mail-outline" text="Email us" />
+
+        <ContactTile
+          icon="chatbubble-ellipses-outline"
+          text="Chat with us"
+          onPress={() => navigation.navigate("SupportChatScreen")}
+        />
+
+        <ContactTile
+          icon="call-outline"
+          text="Call us"
+          onPress={() => navigation.navigate("CallUsScreen")}
+        />
+
+        <ContactTile
+          icon="mail-outline"
+          text="Email us"
+          onPress={() => navigation.navigate("EmailUsScreen")}
+        />
 
         {/* Helpful Resources */}
         <Text style={textStyles.subHeading}>Helpful Resources</Text>
@@ -50,7 +68,7 @@ const SupportScreen = () => {
         <ResourceTile
           icon="shield-checkmark-outline"
           text="Privacy Policy"
-          onPress={() => console.log("Navigate to Privacy Policy")}
+          onPress={() => navigation.navigate("InsurancePolicyScreen")}
         />
         <ResourceTile
           icon="car-outline"
@@ -58,7 +76,7 @@ const SupportScreen = () => {
           onPress={() => navigation.navigate("DrivingTipsScreen")}
         />
         <ResourceTile
-          icon="help-circle-outline"   // ✅ Help Center icon
+          icon="help-circle-outline"
           text="Help Center"
           onPress={() => navigation.navigate("HelpCenterScreen")}
         />
@@ -70,16 +88,5 @@ const SupportScreen = () => {
 export default SupportScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F9F9F9" }, 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  headerTitle: { fontSize: 18, fontWeight: "700", color: colors.dark },
-  headerSpacer: { width: 24 }, // balances arrow for proper centering
+  container: { flex: 1, backgroundColor: "#F9F9F9" },
 });

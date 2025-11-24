@@ -19,7 +19,7 @@ export default function BottomTabs() {
     >
       <Tab.Screen name="Home" component={HomeStack} />
       <Tab.Screen name="Services" component={ServiceStack} />
-      <Tab.Screen name="Booking" component={BookingStack} />
+      <Tab.Screen name="Bookings" component={BookingStack} />
       <Tab.Screen name="Support" component={SupportStack} />
       <Tab.Screen name="Profile" component={ProfileStack} /> 
       <Tab.Screen name="Showroom" component={ShowroomsScreen} /> 

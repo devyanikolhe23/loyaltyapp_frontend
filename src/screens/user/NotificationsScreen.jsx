@@ -6,9 +6,14 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
+  TouchableOpacity,
 } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
 
 const NotificationSettingsScreen = () => {
+  const navigation = useNavigation();
+
   const [settings, setSettings] = useState({
     serviceDue: true,
     appointmentReminders: true,
@@ -27,9 +32,16 @@ const NotificationSettingsScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <Text style={styles.title}>Notifications</Text>
+      {/* ✅ Header with Back Arrow */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Notifications</Text>
+        <View style={styles.headerSpacer} />
+      </View>
 
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* Service Reminders */}
         <Text style={styles.sectionTitle}>Service Reminders</Text>
         <SettingToggle
@@ -92,15 +104,31 @@ const SettingToggle = ({ title, description, value, onToggle }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF', // White theme
+    backgroundColor: '#FFFFFF',
+  },
+
+  // ✅ Header
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 18,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#000",
+  },
+  headerSpacer: { width: 24 },
+
+  scrollContainer: {
     paddingHorizontal: 16,
+    paddingBottom: 50,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginVertical: 20,
-    color: '#000',
-  },
+
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',

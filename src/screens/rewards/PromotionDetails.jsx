@@ -1,27 +1,38 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function PromotionDetailsScreen({ route }) {
+export default function PromotionDetailsScreen({ route, navigation }) {
   const { promo } = route.params;
+
+  const handleBook = async () => {
+    const token = await AsyncStorage.getItem("token");
+
+    if (!token) {
+      Alert.alert(
+        "Login Required",
+        "Please login first to continue booking.",
+        [{ text: "Login", onPress: () => navigation.navigate("Login") }]
+      );
+      return;
+    }
+
+
+    navigation.navigate('ServiceStack', {
+      screen: 'BookingServiceScreen',
+      params: { promo }
+    });
+  };
 
   return (
     <ScrollView style={styles.container}>
       <Image source={{ uri: promo.image }} style={styles.bannerImage} />
       <Text style={styles.title}>{promo.title}</Text>
-      <Text style={styles.desc}>{promo.desc}</Text>
+      <Text style={styles.desc}>{promo.description}</Text>
 
-      <TouchableOpacity style={styles.bookBtn}>
+      <TouchableOpacity style={styles.bookBtn} onPress={handleBook}>
         <Text style={styles.bookBtnText}>Book Now</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  bannerImage: { width: '100%', height: 220 },
-  title: { fontSize: 22, fontWeight: 'bold', margin: 16 },
-  desc: { fontSize: 16, color: '#555', marginHorizontal: 16, marginBottom: 20 },
-  bookBtn: { backgroundColor: '#1976D2', margin: 18, borderRadius: 10, padding: 16, alignItems: 'center' },
-  bookBtnText: { color: '#fff', fontSize: 18 }
-});

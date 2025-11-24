@@ -1,58 +1,83 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Alert } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
-import Header from '../../components/Header';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
-const ServiceDetailScreen = ({ route, navigation }) => {
+const ServiceDetailScreen = ({ route }) => {
+  const navigation = useNavigation();
   const { service } = route.params;
 
+  const handleBookService = async () => {
+    const guest = await AsyncStorage.getItem("guest");
+    const user = await AsyncStorage.getItem("user");
+
+    if (guest === "true" && !user) {
+      Alert.alert(
+        "Login Required",
+        "Please login first to book an appointment.",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Login", onPress: () => navigation.navigate("LoginScreen") }
+        ]
+      );
+      return;
+    }
+
+    navigation.navigate("BookingServiceScreen", { service });
+  };
+
   return (
-    <ScrollView style={styles.container}>
-      <Header title="Service Details" />
-      
-      <View style={styles.imageWrapper}>
-        <Image source={{ uri: service.image }} style={styles.image} />
-        <LinearGradient
-          colors={['rgba(0,0,0,0.4)', 'transparent']}
-          style={styles.imageOverlay}
-        />
-        {service.is_popular && (
-          <View style={styles.popularTag}>
-            <Icon name="flame-outline" size={16} color="#fff" />
-            <Text style={styles.popularText}>Popular</Text>
-          </View>
-        )}
-      </View>
-
-     
-      <View style={styles.detailCard}>
-        <Text style={styles.title}>{service.title}</Text>
-        <View style={styles.priceRow}>
-          <Icon name="cash-outline" size={20} color="#007AFF" />
-          <Text style={styles.price}> ₹{service.price}</Text>
-        </View>
-        <Text style={styles.description}>{service.description}</Text>
-
-        <View style={styles.divider} />
-
-     
-        <TouchableOpacity
-          style={styles.bookButton}
-          onPress={() => navigation.navigate('BookingServiceScreen', { service })}
-        >
-          <LinearGradient
-            colors={['#007AFF', '#0056D2']}
-            style={styles.gradientButton}
-          >
-            <Icon name="calendar-outline" size={20} color="#fff" />
-            <Text style={styles.bookButtonText}>Book Appointment</Text>
-          </LinearGradient>
+    <View style={styles.container}>
+      {/* ✅ Custom Header with Back Arrow */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>Service Details</Text>
+        <View style={styles.headerSpacer} />
       </View>
-    </ScrollView>
+
+      <ScrollView>
+        <View style={styles.imageWrapper}>
+          <Image source={{ uri: service.image }} style={styles.image} />
+          <LinearGradient
+            colors={['rgba(0,0,0,0.4)', 'transparent']}
+            style={styles.imageOverlay}
+          />
+          {service.is_popular && (
+            <View style={styles.popularTag}>
+              <Icon name="flame-outline" size={16} color="#fff" />
+              <Text style={styles.popularText}>Popular</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.detailCard}>
+          <Text style={styles.title}>{service.title}</Text>
+          <View style={styles.priceRow}>
+            <Icon name="cash-outline" size={20} color="#007AFF" />
+            <Text style={styles.price}> ₹{service.price}</Text>
+          </View>
+          <Text style={styles.description}>{service.description}</Text>
+
+          <View style={styles.divider} />
+
+          <TouchableOpacity style={styles.bookButton} onPress={handleBookService}>
+            <LinearGradient
+              colors={['#007AFF', '#0056D2']}
+              style={styles.gradientButton}
+            >
+              <Icon name="calendar-outline" size={20} color="#fff" />
+              <Text style={styles.bookButtonText}>Book Appointment</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -63,6 +88,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F2F4F8",
   },
+
+  // ✅ Back Header (copied style from Terms & Conditions)
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 18,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#000",
+  },
+  headerSpacer: { width: 24 },
+
   imageWrapper: {
     position: 'relative',
   },

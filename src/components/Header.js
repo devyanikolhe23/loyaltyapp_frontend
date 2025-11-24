@@ -12,6 +12,7 @@ export default function Header({ title, showBack }) {
 
   return (
     <View style={styles.header}>
+      {/* Left Side Icon */}
       {showBack ? (
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
           <Icon name="arrow-back" size={24} color="#222" />
@@ -21,10 +22,18 @@ export default function Header({ title, showBack }) {
           <Icon name="menu" size={24} color="#222" />
         </TouchableOpacity>
       )}
-        <Text style={styles.title}>{title}</Text>
+
+      {/* Title */}
+      <Text style={styles.title}>{title}</Text>
+
+      {/* Notification Icon → shown only when not showing back arrow */}
+      {!showBack ? (
         <TouchableOpacity onPress={() => navigation.navigate("NotificationSettingsScreen")}>
           <Icon name="notifications-outline" size={24} color="#333" />
         </TouchableOpacity>
+      ) : (
+        <View style={{ width: 24 }} /> // placeholder for spacing balance
+      )}
     </View>
   );
 }
@@ -37,6 +46,9 @@ const styles = StyleSheet.create({
     padding: 15,
     backgroundColor: '#f5f5f5',
     elevation: 2,
+  },
+  iconBtn: {
+    padding: 4,
   },
   title: {
     fontSize: 20,

@@ -1,85 +1,98 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
-import axios from "axios";
 
-export default function ServiceSelection({ selectedService, onSelectService }) {
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import axios from "axios";
+import { MultiSelect } from "react-native-element-dropdown";
+
+export default function ServiceSelection({ selectedServices = [], onSelectServices }) {
   const [services, setServices] = useState([]);
-  const [currentSelected, setCurrentSelected] = useState(selectedService?.id || null);
   const [loading, setLoading] = useState(true);
 
+  // Dropdown selected IDs
+  const [selectedValues, setSelectedValues] = useState(
+    selectedServices.map((s) => s.id)
+  );
+
+  // ⭐ FETCH ALL SERVICES
   useEffect(() => {
-  axios
-    .get("http://192.168.1.15:8000/services/")
-    .then(res => {
-      console.log("Fetched services response:", res.data);
-      setServices(res.data.results); // ✅ Access array inside results
-      setLoading(false);
-    })
-    .catch(err => {
-      console.error("Error fetching services:", err);
-      setLoading(false);
-    });
-}, []);
+    axios
+      .get("http://192.168.1.8:8000/api/services/?no_pagination=true")
+      .then((res) => {
+        const data = Array.isArray(res.data)
+          ? res.data
+          : res.data.results || [];
 
+        const formatted = data.map((item) => ({
+          label: `${item.title} (₹${item.price})`,
+          value: item.id,
+          price: item.price,
+          title: item.title,
+        }));
 
+        setServices(formatted);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.log("Error fetching services:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  // ⭐ NEW — AUTO UPDATE DROPDOWN WHEN PARENT UPDATES SERVICES (OFFER AUTO-SELECT)
   useEffect(() => {
-    // ✅ When editing, auto-select existing service
-    if (selectedService?.id) {
-      setCurrentSelected(selectedService.id);
-    }
-  }, [selectedService]);
-
-  const handleSelect = (service) => {
-    setCurrentSelected(service.id);
-    onSelectService({
-      id: service.id,
-      title: service.title,
-      price: service.price,
-    });
-  };
-
-  if (loading) {
-    return (
-      <View style={{ marginTop: 20, alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-        <Text>Loading services...</Text>
-      </View>
-    );
-  }
+    setSelectedValues(selectedServices.map((s) => s.id));
+  }, [selectedServices]);
 
   return (
     <View>
-      <Text style={styles.sectionTitle}>Select Service</Text>
+      <Text style={styles.sectionTitle}>Select Services</Text>
 
-      {services.map((service) => (
-        <TouchableOpacity
-          key={service.id}
-          style={[
-            styles.serviceOption,
-            currentSelected === service.id && styles.selectedService,
-          ]}
-          onPress={() => handleSelect(service)}
-        >
-          <Text style={styles.serviceText}>{service.title}</Text>
-          <Text style={styles.servicePrice}>₹{service.price}</Text>
-        </TouchableOpacity>
-      ))}
+      {loading ? (
+        <View style={{ marginTop: 20, alignItems: "center" }}>
+          <ActivityIndicator size="large" />
+          <Text>Loading services...</Text>
+        </View>
+      ) : (
+        <MultiSelect
+          style={styles.dropdown}
+          data={services}
+          labelField="label"
+          valueField="value"
+          placeholder="Choose services"
+          value={selectedValues}
+          onChange={(items) => {
+            setSelectedValues(items);
+
+            const selectedDetails = services
+              .filter((s) => items.includes(s.value))
+              .map((s) => ({
+                id: s.value,
+                title: s.title,
+                price: s.price,
+              }));
+
+            onSelectServices(selectedDetails);
+          }}
+        />
+      )}
     </View>
   );
 }
 
+
 const styles = StyleSheet.create({
-  sectionTitle: { fontSize: 18, fontWeight: "600", marginBottom: 10 },
-  serviceOption: {
-    padding: 14,
-    borderRadius: 12,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  dropdown: {
     borderWidth: 1,
     borderColor: "#ccc",
-    marginBottom: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+    backgroundColor: "#fff",
+    marginBottom: 20,
   },
-  selectedService: { borderColor: "#007AFF", backgroundColor: "#E6F0FF" },
-  serviceText: { fontSize: 16, fontWeight: "500" },
-  servicePrice: { fontSize: 16, fontWeight: "700" },
 });

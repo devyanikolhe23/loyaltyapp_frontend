@@ -11,15 +11,37 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from "@react-navigation/native";
 import Header from '../../components/Header';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Alert } from "react-native";
+
 export default function HomeScreen() {
   const navigation = useNavigation();
   console.log(navigation.getState());
+
+  const handleBookService = async () => {
+    const guest = await AsyncStorage.getItem("guest");
+    const user = await AsyncStorage.getItem("user");
+
+    if (guest === "true" && !user) {
+      Alert.alert(
+        "Login Required",
+        "Please login first to book a service.",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Login", onPress: () => navigation.navigate("Login") }
+        ]
+      );
+      return;
+    }
+
+    navigation.navigate("BookingServiceScreen");
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <Header title="Home" />
       <ScrollView showsVerticalScrollIndicator={false}>
-        
+
         {/* Book Service Banner */}
         <View style={styles.banner}>
           <Image
@@ -33,7 +55,7 @@ export default function HomeScreen() {
             </Text>
             <TouchableOpacity
               style={styles.bookNowButton}
-              onPress={() => navigation.navigate("BookingServiceScreen")}
+              onPress={handleBookService}
             >
               <Text style={styles.bookNowText}>Book Now</Text>
             </TouchableOpacity>
@@ -45,16 +67,21 @@ export default function HomeScreen() {
         <View style={styles.quickActions}>
           <TouchableOpacity
             style={styles.quickActionCard}
-            onPress={() => navigation.navigate("BookingServiceScreen")}
+            onPress={handleBookService}
           >
             <Icon name="build-outline" size={24} color="#2B70F7" />
             <Text style={styles.quickActionText}>Book a Service</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.quickActionCard}>
+
+          <TouchableOpacity
+            style={styles.quickActionCard}
+            onPress={() => navigation.navigate('Services', { screen: 'ServiceStatusScreen' })}>
             <Icon name="clipboard-outline" size={24} color="#2B70F7" />
             <Text style={styles.quickActionText}>Service Status</Text>
           </TouchableOpacity>
+
+
         </View>
 
         {/* Promotions */}
@@ -66,27 +93,27 @@ export default function HomeScreen() {
         >
           <View style={styles.promoCard}>
             <TouchableOpacity
-            onPress={() => navigation.navigate("PromotionsScreen", { title: "Exclusive Offer: 20% Off" })}
+              onPress={() => navigation.navigate("PromotionsScreen", { title: "Exclusive Offer: 20% Off" })}
             >
-          <Image
-            source={require('../../assets/images/carbanner.jpg')} 
-            style={styles.promoImage}
-          />
-         </TouchableOpacity>
+              <Image
+                source={require('../../assets/images/carbanner.jpg')}
+                style={styles.promoImage}
+              />
+            </TouchableOpacity>
             <Text style={styles.promoTitle}>Exclusive Offer: 20% Off</Text>
             <Text style={styles.promoText}>On your next full service.</Text>
           </View>
 
           <View style={styles.promoCard}>
             <TouchableOpacity
-            onPress={() => navigation.navigate("PromotionsScreen", { title: "Free Tire Check" })}
+              onPress={() => navigation.navigate("PromotionsScreen", { title: "Free Tire Check" })}
             >
-          <Image
-            source={require('../../assets/images/carbanner.jpg')} 
-            style={styles.placeholderImage}
-          />
-         </TouchableOpacity>
-            
+              <Image
+                source={require('../../assets/images/carbanner.jpg')}
+                style={styles.placeholderImage}
+              />
+            </TouchableOpacity>
+
             <Text style={styles.promoTitle}>Free Tire Check</Text>
             <Text style={styles.promoText}>Ensure your safety today.</Text>
           </View>
@@ -96,25 +123,26 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Explore</Text>
         <View style={styles.exploreGrid}>
           <TouchableOpacity style={styles.exploreCard}
-          onPress={() => navigation.navigate("Services")}>
+            onPress={() => navigation.navigate("Services")}>
             <Icon name="car-outline" size={24} color="#2B70F7" />
             <Text style={styles.exploreText}>Services</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.exploreCard}
-          onPress={() => navigation.navigate("Support")} >
+            onPress={() => navigation.navigate("Support")} >
             <Icon name="headset-outline" size={24} color="#2B70F7" />
             <Text style={styles.exploreText}>Support</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.exploreCard}>
+          <TouchableOpacity style={styles.exploreCard}
+            onPress={() => navigation.navigate('OfferScreen')}>
             <Icon name="pricetag-outline" size={24} color="#2B70F7" />
             <Text style={styles.exploreText}>Offers</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.exploreCard}
             onPress={() => navigation.navigate("Showroom")}  >
-          
+
             <Icon name="location-outline" size={24} color="#2B70F7" />
             <Text style={styles.exploreText}
             >Find Us</Text>
@@ -128,7 +156,7 @@ export default function HomeScreen() {
 // Styles
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  
+
   banner: {
     marginHorizontal: 20,
     borderRadius: 16,

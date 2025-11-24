@@ -2,17 +2,17 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
   SafeAreaView,
   KeyboardAvoidingView,
-  Platform
+  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import Header from '../../components/Header'; // your reusable Header
 
-const HelpCenter = () => {
+const HelpCenter = ({ navigation }) => {
   const [expanded, setExpanded] = useState('book');
 
   return (
@@ -21,31 +21,45 @@ const HelpCenter = () => {
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        {/* Main Scrollable Content */}
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity>
-              <Icon name="arrow-back" size={24} color="#000" />
-            </TouchableOpacity>
-            <Text style={styles.headerText}>Help Center</Text>
-          </View>
+        {/* Header with back button */}
+        <Header
+          title="Help Center"
+          showBack={true}
+          onBackPress={() => navigation.goBack()}
+        />
 
-          {/* Search */}
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search for help"
-            placeholderTextColor="#999"
-          />
-
+        {/* Scrollable content */}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Popular Topics */}
           <Text style={styles.sectionTitle}>Popular Topics</Text>
           <View style={styles.topicsGrid}>
-            <TopicBox icon="car" label="My Bookings" />
-            <TopicBox icon="location" label="Locations" />
-            <TopicBox icon="card" label="Payment" />
-            <TopicBox icon="help-circle" label="Other" />
+            <TopicBox
+              icon="car"
+              label="My Bookings"
+              onPress={() =>
+                navigation.navigate('BookingStack', { screen: 'MyBookingsScreen' })
+              }
+            />
+
+
+            <TopicBox
+              icon="location"
+              label="Locations"
+              onPress={() => navigation.navigate('LocationsScreen')} // replace with actual screen
+            />
+            <TopicBox
+              icon="card"
+              label="Payment"
+              onPress={() => navigation.navigate('PaymentScreen')} // replace with actual screen
+            />
+            <TopicBox
+              icon="help-circle"
+              label="Other"
+              onPress={() => navigation.navigate('OtherScreen')} // replace with actual screen
+            />
           </View>
 
           {/* FAQ */}
@@ -73,30 +87,38 @@ const HelpCenter = () => {
           <View style={styles.helpContainer}>
             <Text style={styles.stillNeedHelp}>Still need help?</Text>
             <View style={styles.buttonRow}>
-              <TouchableOpacity style={styles.outlinedButton}>
+              <TouchableOpacity
+                style={styles.outlinedButton}
+                onPress={() => navigation.navigate('EmailUsScreen')} // change to EmailUsScreen or ChatWithUs
+              >
                 <Icon name="mail-outline" size={18} color="#000" />
                 <Text style={styles.outlinedButtonText}>Contact Us</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.filledButton}>
+
+              <TouchableOpacity
+                style={styles.filledButton}
+                onPress={() => navigation.navigate('SupportChatScreen')}
+              >
                 <Icon name="chatbox-ellipses-outline" size={18} color="#fff" />
                 <Text style={styles.filledButtonText}>Chat with Us</Text>
               </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
-
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
-const TopicBox = ({ icon, label }) => (
-  <TouchableOpacity style={styles.topicBox}>
+// Updated TopicBox to accept onPress
+const TopicBox = ({ icon, label, onPress }) => (
+  <TouchableOpacity style={styles.topicBox} onPress={onPress}>
     <Icon name={icon} size={24} color="#007AFF" />
     <Text style={styles.topicLabel}>{label}</Text>
   </TouchableOpacity>
 );
 
+// FAQ Component
 const FAQ = ({ title, content, expanded, onPress }) => (
   <TouchableOpacity onPress={onPress} style={styles.faqBox}>
     <Text style={styles.faqTitle}>{title}</Text>
@@ -104,49 +126,12 @@ const FAQ = ({ title, content, expanded, onPress }) => (
   </TouchableOpacity>
 );
 
-
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 100, // Space for bottom nav
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  headerText: {
-    fontSize: 22,
-    fontWeight: '600',
-    marginLeft: 16,
-    color: '#000',
-  },
-  searchInput: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 16,
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    marginVertical: 10,
-  },
-  topicsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
+  safeArea: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 100 },
+  sectionTitle: { fontSize: 18, fontWeight: '600', color: '#000', marginVertical: 10 },
+  topicsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   topicBox: {
     width: '47%',
     backgroundColor: '#f8f8f8',
@@ -155,41 +140,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 8,
   },
-  topicLabel: {
-    marginTop: 10,
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#000',
-  },
-  faqBox: {
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
-  },
-  faqTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000',
-  },
-  faqContent: {
-    marginTop: 8,
-    color: '#555',
-    fontSize: 14,
-  },
-  helpContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  stillNeedHelp: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 10,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
+  topicLabel: { marginTop: 10, fontSize: 14, fontWeight: '500', color: '#000' },
+  faqBox: { paddingVertical: 14, borderBottomWidth: 1, borderColor: '#eee' },
+  faqTitle: { fontSize: 16, fontWeight: '500', color: '#000' },
+  faqContent: { marginTop: 8, color: '#555', fontSize: 14 },
+  helpContainer: { marginTop: 20, alignItems: 'center' },
+  stillNeedHelp: { fontSize: 16, fontWeight: '600', color: '#000', marginBottom: 10 },
+  buttonRow: { flexDirection: 'row', gap: 12 },
   outlinedButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -200,11 +157,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#fff',
   },
-  outlinedButtonText: {
-    marginLeft: 8,
-    fontWeight: '500',
-    color: '#000',
-  },
+  outlinedButtonText: { marginLeft: 8, fontWeight: '500', color: '#000' },
   filledButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -213,28 +166,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 10,
   },
-  filledButtonText: {
-    marginLeft: 8,
-    fontWeight: '500',
-    color: '#fff',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 12,
-    backgroundColor: '#fafafa',
-    borderTopWidth: 1,
-    borderColor: '#eee',
-  },
-  bottomTab: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  bottomTabText: {
-    fontSize: 12,
-    marginTop: 4,
-    color: '#555',
-  },
+  filledButtonText: { marginLeft: 8, fontWeight: '500', color: '#fff' },
 });
 
 export default HelpCenter;

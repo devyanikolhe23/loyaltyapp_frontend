@@ -6,20 +6,48 @@ export default function VehicleDetailsForm({ defaultVehicle, onChangeVehicle }) 
     make: "",
     model: "",
     year: "",
+    vehicleNumber: "",
   });
 
-  // ✅ Pre-fill when editing
+  // ✅ Prefill only once when component mounts
   useEffect(() => {
     if (defaultVehicle) {
-      setForm(defaultVehicle);
-      onChangeVehicle(defaultVehicle);
+      const newData = {
+        make: defaultVehicle.make || "",
+        model: defaultVehicle.model || "",
+        year: defaultVehicle.year || "",
+        vehicleNumber: defaultVehicle.vehicleNumber || defaultVehicle.vehicle_number || "",
+      };
+
+      // 🔥 Only update if data is actually different (prevents infinite loop)
+      const isDifferent =
+        newData.make !== form.make ||
+        newData.model !== form.model ||
+        newData.year !== form.year ||
+        newData.vehicleNumber !== form.vehicleNumber;
+
+      if (isDifferent) {
+        setForm(newData);
+        onChangeVehicle && onChangeVehicle(newData);
+      }
     }
   }, [defaultVehicle]);
+
+
+  // useEffect(() => {
+  //   if (defaultVehicle) {
+  //     setForm(defaultVehicle);
+  //     onChangeVehicle(defaultVehicle);
+  //   }
+  // }, [defaultVehicle]);
 
   const handleChange = (field, value) => {
     const updatedForm = { ...form, [field]: value };
     setForm(updatedForm);
-    onChangeVehicle(updatedForm);
+    onChangeVehicle({
+      ...updatedForm,
+      vehicle_number: updatedForm.vehicleNumber,  // backend name
+    });
   };
 
   return (
@@ -47,8 +75,17 @@ export default function VehicleDetailsForm({ defaultVehicle, onChangeVehicle }) 
         placeholder="Year (e.g., 2021)"
         placeholderTextColor="#888"
         keyboardType="numeric"
-        value={form.year}
+        value={form.year ? String(form.year) : ""}
         onChangeText={(val) => handleChange("year", val)}
+      />
+
+
+      <TextInput
+        style={styles.input}
+        placeholder="Vehicle Number (e.g., MH09AB1234)"
+        placeholderTextColor="#888"
+        value={form.vehicleNumber}
+        onChangeText={(val) => handleChange("vehicleNumber", val)}
       />
     </View>
   );

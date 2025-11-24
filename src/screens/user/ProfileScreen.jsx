@@ -20,7 +20,7 @@ import Entypo from "react-native-vector-icons/Entypo";
 import ProfileImagePicker from "../../components/profile/ProfileImagePicker";
 import { launchImageLibrary } from "react-native-image-picker";
 
-const BASE_URL = "http://192.168.1.16:8000";
+const BASE_URL = "http://192.168.1.8:8000";
 
 const ProfileScreen = ({ navigation }) => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -55,7 +55,7 @@ const ProfileScreen = ({ navigation }) => {
         }
 
         const user = JSON.parse(storedUser);
-        const response = await axios.get(`${BASE_URL}/users/${user.id}/`, {
+        const response = await axios.get(`${BASE_URL}/api/users/${user.id}/`, {
           headers: { Authorization: `Bearer ${access}` },
         });
 
@@ -306,20 +306,23 @@ const ProfileScreen = ({ navigation }) => {
             />
           </View>
 
-          <View style={styles.item}>
+          {/* <View style={styles.item}>
             <Ionicons name="language-outline" size={20} color="#444" />
             <Text style={styles.itemText}>Language</Text>
             <TouchableOpacity>
               <Entypo name="chevron-right" size={20} color="#888" />
             </TouchableOpacity>
-          </View>
+          </View> */}
         </View>
 
         {/* 🔹 More Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>More</Text>
 
-          <TouchableOpacity style={styles.item}>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => navigation.navigate('ServiceHistoryScreen')}
+          >
             <FontAwesome5 name="history" size={18} color="#444" />
             <Text style={styles.itemText}>Service History</Text>
             <Entypo name="chevron-right" size={20} color="#888" />
@@ -327,7 +330,7 @@ const ProfileScreen = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.item}
-            onPress={() => navigation.navigate("LoyaltyRewardsScreen")}
+            onPress={() => navigation.navigate('LoyaltyRewardsScreen')}
           >
             <FontAwesome5 name="medal" size={18} color="#444" />
             <Text style={styles.itemText}>Loyalty Rewards</Text>
@@ -336,12 +339,22 @@ const ProfileScreen = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.item}
-            onPress={() => navigation.navigate("ReferFriendScreen")}
+            onPress={() => navigation.navigate('ReferFriendScreen')}
           >
             <Ionicons name="person-add-outline" size={20} color="#444" />
             <Text style={styles.itemText}>Refer a Friend</Text>
             <Entypo name="chevron-right" size={20} color="#888" />
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => navigation.navigate('MyVehiclesScreen')}
+          >
+            <Ionicons name="car-outline" size={20} color="#444" />
+            <Text style={styles.itemText}>My Vehicles</Text>
+            <Entypo name="chevron-right" size={20} color="#888" />
+          </TouchableOpacity>
+
         </View>
       </ScrollView>
     </View>

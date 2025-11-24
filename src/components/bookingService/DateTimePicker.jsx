@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#ccc",
-    marginBottom: 20,
+    marginBottom: 10,
   },
   dateText: { fontSize: 16, color: "#333" },
 });
