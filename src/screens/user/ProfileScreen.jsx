@@ -20,7 +20,7 @@ import Entypo from "react-native-vector-icons/Entypo";
 import ProfileImagePicker from "../../components/profile/ProfileImagePicker";
 import { launchImageLibrary } from "react-native-image-picker";
 
-const BASE_URL = "http://192.168.1.8:8000";
+const BASE_URL = "http://192.168.1.15:8000";
 
 const ProfileScreen = ({ navigation }) => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);

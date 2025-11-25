@@ -47,7 +47,7 @@ const RegistrationScreen = ({ navigation }) => {
     }
 
     try {
-      const response = await fetch('http://192.168.1.8:8000/api/register/', {
+      const response = await fetch('http://192.168.1.15:8000/api/register/', {
 
         method: 'POST',
         headers: {

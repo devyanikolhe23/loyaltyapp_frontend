@@ -30,7 +30,7 @@ const BookingDetailsScreen = ({ route, navigation }) => {
               const token = await AsyncStorage.getItem("access");
 
               await axios.post(
-                `http://192.168.1.8:8000/bookings/${booking.id}/cancel/`,
+                `http://192.168.1.15:8000/bookings/${booking.id}/cancel/`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
               );

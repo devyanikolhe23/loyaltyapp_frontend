@@ -19,6 +19,8 @@ import Header from "../../components/Header";
 export default function BookingServiceScreen({ navigation, route = {} }) {
   const defaultVehicle = route?.params?.defaultVehicle || null;
   console.log("Incoming defaultVehicle:", route.params?.defaultVehicle);
+  const { promo, offer, preselectedServices, discount, source } =
+    route.params || {};
 
   const isEdit = !!route.params?.isEdit;
   const existingBooking = route.params?.booking ?? {};
@@ -58,6 +60,9 @@ export default function BookingServiceScreen({ navigation, route = {} }) {
       : { id: null, make: "", model: "", year: "", vehicleNumber: "" }
   );
 
+  const [availableOffers, setAvailableOffers] = useState([]);
+  const [selectedOffer, setSelectedOffer] = useState(null);
+
   useEffect(() => {
     if (route.params?.defaultVehicle) {
       setVehicle({
@@ -73,6 +78,55 @@ export default function BookingServiceScreen({ navigation, route = {} }) {
     }
   }, [route.params?.defaultVehicle]);
 
+  // Fetch all active offers
+  useEffect(() => {
+    const fetchOffers = async () => {
+      try {
+        const res = await axios.get("http://192.168.1.15:8000/api/offers/");
+        if (!res.data) return;
+
+        const now = new Date();
+        const validOffers = res.data.filter(
+          (offer) =>
+            offer.is_active &&
+            new Date(offer.valid_from) <= now &&
+            new Date(offer.valid_to) >= now
+        );
+
+        setAvailableOffers(validOffers);
+
+        if (offerId) {
+          const offer = validOffers.find((o) => o.id === offerId);
+          if (offer) {
+            setSelectedOffer(offer);
+
+            if (offer.offer_type === "fixed" && offer.services.length > 0) {
+              // Auto-select fixed services
+              setServices(
+                offer.services.map((s) => ({
+                  id: s.id,
+                  title: s.title,
+                  price: s.price || 0,
+                }))
+              );
+            } else if (offer.offer_type === "flexible") {
+              // Flexible offer → customer picks services freely
+              Alert.alert(
+                "Special Offer",
+                `${offer.title} - ${offer.discount_percentage}% off! Select any service.`
+              );
+            }
+          }
+        }
+      } catch (err) {
+        console.log("Error fetching offers:", err);
+      }
+    };
+
+    fetchOffers();
+  }, [offerId]);
+
+
   // If user came from an Offer → auto-select the service
   useEffect(() => {
     const serviceIds = route.params?.serviceIds || []; // always array
@@ -81,7 +135,7 @@ export default function BookingServiceScreen({ navigation, route = {} }) {
         try {
           // Fetch all services in parallel
           const requests = serviceIds.map((id) =>
-            axios.get(`http://192.168.1.8:8000/api/services/${id}/`)
+            axios.get(`http://192.168.1.15:8000/api/services/${id}/`)
           );
 
           const responses = await Promise.all(requests);
@@ -102,6 +156,31 @@ export default function BookingServiceScreen({ navigation, route = {} }) {
   }, [route.params?.serviceIds]);
 
 
+  // =====================
+  // ⭐ PROMOTION AUTO SELECTION (PUT THIS HERE)
+  // =====================
+  useEffect(() => {
+    // Auto-apply banner promotion services
+    const promoServices = route.params?.preselectedServices || [];
+    const promoDiscount = route.params?.discount || 0;
+
+    if (promoServices.length > 0) {
+      setServices(
+        promoServices.map(s => ({
+          id: s.id,
+          title: s.title,
+          price: s.price || 0
+        }))
+      );
+    }
+
+    if (promoDiscount > 0) {
+      setSelectedOffer({
+        title: route.params.offerTitle || "Special Promotion",
+        discount_percentage: promoDiscount,
+      });
+    }
+  }, [route.params?.preselectedServices, route.params?.discount]);
 
 
   // ======================================================
@@ -113,7 +192,7 @@ export default function BookingServiceScreen({ navigation, route = {} }) {
       if (!token) return [];
 
       const res = await axios.get(
-        "http://192.168.1.8:8000/api/bookings/?no_pagination=true",
+        "http://192.168.1.15:8000/api/bookings/?no_pagination=true",
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -172,6 +251,25 @@ export default function BookingServiceScreen({ navigation, route = {} }) {
     const isBlocked = await checkActiveBookingForThisCar();
     if (isBlocked) return;
 
+    // Determine discount
+    let discount = 0;
+    let offerTitle = "";
+
+    // 1️⃣ If coming from a preselected banner promotion
+    if (route.params?.discount) {
+      discount = route.params.discount;
+      offerTitle = route.params.offerTitle || "";
+    }
+
+    // 2️⃣ Else if coming from a selected offer in the system
+    else if (offerId) {
+      const selectedOffer = availableOffers.find(o => o.id === offerId);
+      if (selectedOffer) {
+        discount = selectedOffer.discount_percentage || 0;
+        offerTitle = selectedOffer.title || "";
+      }
+    }
+
     // ========== Prepare Payload ==========
     const bookingPayload = {
       services: services.map(s => s.id),
@@ -182,6 +280,8 @@ export default function BookingServiceScreen({ navigation, route = {} }) {
       vehicle_model: vehicle.model,
       vehicle_year: vehicle.year,
       vehicle_number: vehicle.vehicleNumber,
+      discount,       // include discount in booking payload
+      offer_title: offerTitle
     };
 
     try {
@@ -190,7 +290,7 @@ export default function BookingServiceScreen({ navigation, route = {} }) {
       // ========== EDIT BOOKING ==========
       if (isEdit && existingBooking?.id) {
         response = await axios.put(
-          `http://192.168.1.8:8000/api/bookings/${existingBooking.id}/`,
+          `http://192.168.1.15:8000/api/bookings/${existingBooking.id}/`,
           bookingPayload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -207,7 +307,7 @@ export default function BookingServiceScreen({ navigation, route = {} }) {
 
       // ========== CREATE NEW BOOKING ==========
       response = await axios.post(
-        "http://192.168.1.8:8000/api/bookings/",
+        "http://192.168.1.15:8000/api/bookings/",
         bookingPayload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -231,6 +331,8 @@ export default function BookingServiceScreen({ navigation, route = {} }) {
               totalPrice,
               discount: route.params?.discount || 0,
               offerTitle: route.params?.offerTitle || "",
+              promo: route.params?.promo || null,
+              source: route.params?.promo ? "promotion" : "offer",
             }),
         },
       ]);
@@ -253,7 +355,7 @@ export default function BookingServiceScreen({ navigation, route = {} }) {
       />
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <ServiceSelection selectedServices={services} onSelectServices={setServices} />
+        <ServiceSelection selectedServices={services} onSelectServices={setServices} selectedOffer={selectedOffer} />
 
         <DateTimePickerComponent
           defaultDate={appointmentDate}

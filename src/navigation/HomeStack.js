@@ -9,6 +9,7 @@ import ServiceStack from '../navigation/ServiceStack';
 import OfferScreen from '../screens/Offers/OfferScreen';
 import BookingConfirmationScreen from '../screens/bookingconfirmation/BookingConfirmationScreen';
 import RewardsStack from './RewardsStack';
+import AuthStack from './AuthStack';
 
 const Stack = createStackNavigator();
 
@@ -47,6 +48,7 @@ export default function HomeStackNavigator() {
       />
 
       <Stack.Screen name="RewardsStack" component={RewardsStack}/>
+      <Stack.Screen name="AuthStack" component={AuthStack}/>
 
 
     </Stack.Navigator>

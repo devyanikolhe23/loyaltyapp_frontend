@@ -33,6 +33,7 @@ const OfferCard = ({ offer }) => {
           serviceIds,
           discount: offer.discount_percentage || 0,
           offerTitle: offer.title || "",
+          source: "offer",
         })
       }
     >
@@ -66,24 +67,31 @@ const OffersScreen = () => {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
 
-  const API_URL = "http://192.168.1.8:8000/api/offers/";
+  const API_URL = "http://192.168.1.15:8000/api/offers/";
 
   // Fetch offers from backend
   const fetchOffers = async () => {
-    try {
-      const res = await axios.get(`${API_URL}?no_pagination=true`);
-      console.log("RAW API RESPONSE:", res.data);  // <-- add this
-      const data = res.data.results || [];
-      console.log("Parsed offers:", data.map(o => o.title));
-      setOffers(data);
-    } catch (err) {
-      console.log("Error fetching offers:", err);
-      setOffers([]);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+  try {
+    const res = await axios.get(`${API_URL}?no_pagination=true`);
+
+    let data;
+
+    if (Array.isArray(res.data)) {
+      data = res.data;  // no pagination response
+    } else {
+      data = res.data.results || []; // paginated response
     }
-  };
+
+    console.log("Parsed Offers:", data.map(o => o.title));
+    setOffers(data);
+
+  } catch (err) {
+    console.log("Error fetching offers:", err.response?.data || err.message);
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
 
 
   // Pull-to-refresh

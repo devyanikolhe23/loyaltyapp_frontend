@@ -15,6 +15,7 @@ import RewardStack from './RewardsStack';
 import AddVehicleScreen from '../screens/user/AddVehicleScreen';
 import PromotionDetailsScreen from '../screens/rewards/PromotionDetails';
 import PromotionsScreen from '../screens/rewards/PromotionsScreen';
+import AuthStack from './AuthStack';
 
 
 const Stack = createNativeStackNavigator();
@@ -58,6 +59,7 @@ export default function StackNavigator() {
       <Stack.Screen name="RewardStack" component={RewardStack} />
       <Stack.Screen name="PromotionDetails" component={PromotionDetailsScreen}/>
       <Stack.Screen name="PromotionsScreen" component={PromotionsScreen}/>
+      <Stack.Screen name="AuthStack" component={AuthStack}/>
 
       <Stack.Screen
         name="AddVehicleScreen"

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,29 +6,61 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
-  TouchableOpacity
+  TouchableOpacity,
+  Alert,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 
 export default function ViewPromotionDetails() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { promo } = route.params;
+  const { promo } = route.params; // ✅ use the promo passed
+  const [userToken, setUserToken] = useState(null);
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      const token = await AsyncStorage.getItem("access");
+      setUserToken(token);
+    };
+    fetchToken();
+  }, []);
 
   const image = promo.image || promo.offer?.image;
   const title = promo.title || promo.offer?.title;
   const description = promo.description || promo.offer?.description;
   const highlight = promo.highlight_text || "";
   const discount = promo.offer?.discount_percentage;
-
   const serviceNames = promo.offer?.service_names || [];
 
   const handleBookNow = () => {
+    if (!userToken) {
+      // Show login alert for guests
+      Alert.alert(
+        "Login Required",
+        "You need to log in to book this promotion.",
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Login",
+            onPress: () => {
+              navigation.navigate('AuthStack', { screen: "Login" });
+            }
+          },
+        ]
+      );
+
+      return;
+    }
+
+    // Logged-in user: navigate to booking
     navigation.navigate("BookingServiceScreen", {
       promo,
-      preselectedServices: promo.offer?.services || []
+      preselectedServices: promo.services_with_details,
+      discount: promo.offer?.discount_percentage,
+      source: "promotion",
     });
   };
 

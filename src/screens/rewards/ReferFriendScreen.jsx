@@ -4,7 +4,7 @@ import Header from "../../components/Header";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL = "http://192.168.1.8:8000";
+const BASE_URL = "http://192.168.1.15:8000";
 
 const ReferFriendScreen = () => {
   const [referralCode, setReferralCode] = useState("");

@@ -8,25 +8,38 @@ export default function BookingDetailsCard({
   totalPrice = 0,
   discount = 0,
   offerTitle = "",
+  promo = null,
+  source = "",
 }) {
   if (!booking) return null;
 
-  // Prefer services passed from previous screen; fallback to backend
+  // FIXED: Detect Promotion correctly
+  const isPromotion = !!promo;
+  let appliedLabel = "";
+  if (discount > 0) {
+    if (source === "promotion") {
+      appliedLabel = "Promotion Applied";
+    } else if (source === "offer") {
+      appliedLabel = "Offer Applied";
+    } else {
+      appliedLabel = "Offer Applied"; // fallback
+    }
+  }
+
+  // Prefer services from previous screen; fallback to backend
   const services =
     selectedServices.length > 0
       ? selectedServices
       : booking.services || [];
 
-  // Always calculate total price dynamically
+  // Calculate total dynamically
   const computedTotal = services.reduce(
     (sum, s) => sum + Number(s.price || 0),
     0
   );
 
-  // Final price BEFORE discount
   const baseTotal = Number(totalPrice) || computedTotal;
 
-  // Apply discount if exists
   const discountAmount = discount ? (baseTotal * discount) / 100 : 0;
   const finalTotal = baseTotal - discountAmount;
 
@@ -34,13 +47,14 @@ export default function BookingDetailsCard({
     <View style={styles.card}>
       <Text style={styles.title}>Booking Details</Text>
 
-      {/* Applied Offer */}
-      {discount > 0 && (
+      {/* Applied Offer / Promotion */}
+      {discount > 0 && appliedLabel !== "" && (
         <DetailRow
-          label="Offer Applied"
+          label={appliedLabel}
           value={`${offerTitle} (${discount}% OFF)`}
         />
       )}
+
 
       {/* Services */}
       <View style={{ marginBottom: 10 }}>
@@ -63,17 +77,16 @@ export default function BookingDetailsCard({
 
       <DetailRow label="Date" value={booking.appointment_date} />
       <DetailRow label="Time" value={booking.appointment_time} />
+
       <DetailRow
         label="Vehicle"
         value={`${booking.vehicle_make} ${booking.vehicle_model} (${booking.vehicle_year})`}
       />
 
-
       <DetailRow
         label="Vehicle Number"
         value={booking.vehicle_number}
       />
-
 
       {/* BASE PRICE */}
       <DetailRow

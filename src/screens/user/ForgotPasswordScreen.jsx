@@ -7,7 +7,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
 
   const handleSendCode = async () => {
     try {
-     const response = await axios.post('http://192.168.1.8:8000/send-verification-code/', { email });
+     const response = await axios.post('http://192.168.1.15:8000/send-verification-code/', { email });
 
 
       Alert.alert("Success", "Verification code sent to your email.");

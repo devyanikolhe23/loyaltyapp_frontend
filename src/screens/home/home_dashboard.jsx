@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -13,10 +13,13 @@ import { useNavigation } from "@react-navigation/native";
 import Header from '../../components/Header';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
+import axios from "axios";
 
 export default function HomeScreen() {
   const navigation = useNavigation();
-  console.log(navigation.getState());
+  const [featuredPromotions, setFeaturedPromotions] = useState([]);
+  const [banner, setBanner] = useState(null);
+
 
   const handleBookService = async () => {
     const guest = await AsyncStorage.getItem("guest");
@@ -35,6 +38,33 @@ export default function HomeScreen() {
     }
 
     navigation.navigate("BookingServiceScreen");
+  };
+
+  useEffect(() => {
+    fetchFeaturedPromotions();
+  }, []);
+
+  const fetchFeaturedPromotions = async () => {
+    try {
+      const token = await AsyncStorage.getItem("access");
+
+      const headers = token
+        ? { Authorization: `Bearer ${token}` }
+        : {};
+
+      const response = await axios.get(
+        "http://192.168.1.15:8000/api/promotion-banners/",
+        { headers }
+      );
+
+      if (Array.isArray(response.data)) {
+        setFeaturedPromotions(response.data);
+      } else if (Array.isArray(response.data.results)) {
+        setFeaturedPromotions(response.data.results);
+      }
+    } catch (error) {
+      console.log("Error fetching promotions:", error);
+    }
   };
 
   return (
@@ -73,79 +103,80 @@ export default function HomeScreen() {
             <Text style={styles.quickActionText}>Book a Service</Text>
           </TouchableOpacity>
 
-
           <TouchableOpacity
             style={styles.quickActionCard}
-            onPress={() => navigation.navigate('Services', { screen: 'ServiceStatusScreen' })}>
+            onPress={() => navigation.navigate('Services', { screen: 'ServiceStatusScreen' })}
+          >
             <Icon name="clipboard-outline" size={24} color="#2B70F7" />
             <Text style={styles.quickActionText}>Service Status</Text>
           </TouchableOpacity>
-
-
         </View>
 
-        {/* Promotions */}
+        {/* Recent Promotions */}
         <Text style={styles.sectionTitle}>Recent Promotions</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.promotions}
         >
-          <View style={styles.promoCard}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("PromotionsScreen", { title: "Exclusive Offer: 20% Off" })}
-            >
-              <Image
-                source={require('../../assets/images/carbanner.jpg')}
-                style={styles.promoImage}
-              />
-            </TouchableOpacity>
-            <Text style={styles.promoTitle}>Exclusive Offer: 20% Off</Text>
-            <Text style={styles.promoText}>On your next full service.</Text>
-          </View>
+          {featuredPromotions.length === 0 ? (
+            <Text style={{ marginLeft: 20, color: "#555" }}>No promotions available</Text>
+          ) : (
+            featuredPromotions.map((promo) => (
+              <View key={promo.id} style={styles.promoCard}>
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate("PromotionsScreen", { promo })
+                  }
+                >
+                  <Image
+                    source={{ uri: promo.image }}
+                    style={styles.promoImage}
+                  />
+                </TouchableOpacity>
 
-          <View style={styles.promoCard}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("PromotionsScreen", { title: "Free Tire Check" })}
-            >
-              <Image
-                source={require('../../assets/images/carbanner.jpg')}
-                style={styles.placeholderImage}
-              />
-            </TouchableOpacity>
-
-            <Text style={styles.promoTitle}>Free Tire Check</Text>
-            <Text style={styles.promoText}>Ensure your safety today.</Text>
-          </View>
+                <Text style={styles.promoTitle}>{promo.title}</Text>
+                <Text style={styles.promoText}>
+                  {promo.short_description || promo.description}
+                </Text>
+              </View>
+            ))
+          )}
         </ScrollView>
 
         {/* Explore Section */}
         <Text style={styles.sectionTitle}>Explore</Text>
         <View style={styles.exploreGrid}>
-          <TouchableOpacity style={styles.exploreCard}
-            onPress={() => navigation.navigate("Services")}>
+          <TouchableOpacity
+            style={styles.exploreCard}
+            onPress={() => navigation.navigate("Services")}
+          >
             <Icon name="car-outline" size={24} color="#2B70F7" />
             <Text style={styles.exploreText}>Services</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.exploreCard}
-            onPress={() => navigation.navigate("Support")} >
+          <TouchableOpacity
+            style={styles.exploreCard}
+            onPress={() => navigation.navigate("Support")}
+          >
             <Icon name="headset-outline" size={24} color="#2B70F7" />
             <Text style={styles.exploreText}>Support</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.exploreCard}
-            onPress={() => navigation.navigate('OfferScreen')}>
+          <TouchableOpacity
+            style={styles.exploreCard}
+            onPress={() => navigation.navigate('OfferScreen')}
+          >
             <Icon name="pricetag-outline" size={24} color="#2B70F7" />
             <Text style={styles.exploreText}>Offers</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.exploreCard}
-            onPress={() => navigation.navigate("Showroom")}  >
-
+          <TouchableOpacity
+            style={styles.exploreCard}
+            onPress={() => navigation.navigate("Showroom")}
+          >
             <Icon name="location-outline" size={24} color="#2B70F7" />
-            <Text style={styles.exploreText}
-            >Find Us</Text>
+            <Text style={styles.exploreText}>Find Us</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -195,12 +226,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
+
   sectionTitle: {
     marginTop: 25,
     marginLeft: 20,
     fontSize: 18,
     fontWeight: '600',
   },
+
   quickActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -222,6 +255,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontWeight: '500',
   },
+
   promotions: {
     marginTop: 15,
     paddingLeft: 20,
@@ -238,12 +272,6 @@ const styles = StyleSheet.create({
     height: 110,
     borderRadius: 8,
   },
-  placeholderImage: {
-    height: 110,
-    backgroundColor: '#ddd',
-    borderRadius: 8,
-    width: '100%',
-  },
   promoTitle: {
     fontWeight: '600',
     marginTop: 10,
@@ -252,6 +280,7 @@ const styles = StyleSheet.create({
     color: '#555',
     marginTop: 4,
   },
+
   exploreGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
