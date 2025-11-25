@@ -348,6 +348,15 @@ const ProfileScreen = ({ navigation }) => {
             <Text style={styles.itemText}>{t("referfriend")}</Text>
             <Entypo name="chevron-right" size={20} color="#888" />
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => navigation.navigate("MyCouponsScreen")}
+          >
+            <Ionicons name="ticket-outline" size={20} color="#444" />
+            <Text style={styles.itemText}>{("My Coupons")}</Text>
+            <Entypo name="chevron-right" size={20} color="#888" />
+          </TouchableOpacity>
+
         </View>
       </ScrollView>
     </View>

@@ -227,7 +227,7 @@ const LoyaltyRewardsScreen = ({ navigation }) => {
                       rewardTitle: r.title,
                       rewardType: r.type,
                       rewardDiscountValue: r.discount_value,
-                     
+
                     });
                   } else {
                     Alert.alert("Invalid Reward", "This reward is not linked to any service.");
@@ -244,22 +244,43 @@ const LoyaltyRewardsScreen = ({ navigation }) => {
         ))
       )}
 
-      {/* How to Earn */}
       <Text style={styles.sectionTitle}>How to Earn Points</Text>
       {(!earnRules || earnRules.length === 0) ? (
         <Text style={{ color: "#666", marginBottom: 12 }}>No earning rules available.</Text>
       ) : (
         earnRules.map((rule) => (
-          <View key={rule.id} style={styles.earnCard}>
+          <TouchableOpacity
+            key={rule.id}
+            style={styles.earnCard}
+            onPress={() => {
+              // Navigate to BookingServiceScreen directly
+              const title = rule.title?.toLowerCase() || "";
+
+              if (title.includes("review")) {
+                // If admin added "Leave a Review" rule
+                navigation.navigate("ReviewScreen");
+              } else {
+                // For all other earning rules
+                navigation.navigate("BookingServiceScreen", {
+                  earningRuleId: rule.id,
+                  rewardType: "earning_rule",
+                  rewardTitle: rule.title,
+                  minSpend: rule.amount_base,
+                });
+              }
+            }}
+          >
             <Icon name={rule.icon || "star-outline"} size={30} color="#3B82F6" />
             <View style={{ marginLeft: 10, flex: 1 }}>
               <Text style={styles.rewardTitle}>{rule.title}</Text>
               <Text style={styles.rewardDesc}>{rule.description}</Text>
             </View>
             <Text style={{ fontWeight: "700" }}>+{rule.points}</Text>
-          </View>
+          </TouchableOpacity>
         ))
+
       )}
+
     </ScrollView>
   );
 };

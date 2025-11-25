@@ -7,7 +7,8 @@ import LoyaltyRewardsScreen from "../screens/rewards/LoyaltyRewardsScreen";
 import ReferFriendScreen from "../screens/rewards/ReferFriendScreen";
 import LanguagePicker from '../screens/LanguagePicker';
 import BookingServiceScreen from "../screens/booking/BookingServiceScreen";
-
+import ReviewScreen from "../screens/rewards/ReviewScreen";
+import MyCouponsScreen from "../screens/rewards/MyCouponsScreen";
 const Stack = createNativeStackNavigator();
 
 export default function ProfileStack() {
@@ -23,6 +24,8 @@ export default function ProfileStack() {
         options={{ title: "Language Picker" }}
       />
       <Stack.Screen name="BookingServiceScreen" component={BookingServiceScreen} />
+      <Stack.Screen name="ReviewScreen" component={ReviewScreen} />
+      <Stack.Screen name="MyCouponsScreen" component={MyCouponsScreen} />
     </Stack.Navigator>
   );
 }
