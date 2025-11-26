@@ -41,6 +41,7 @@ export default function Header({ title, showBack }) {
 
   return (
     <View style={styles.header}>
+      {/* Left Side Icon */}
       {showBack ? (
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
           <Icon name="arrow-back" size={24} color="#222" />
@@ -51,18 +52,25 @@ export default function Header({ title, showBack }) {
         </TouchableOpacity>
       )}
 
+
+      {/* ✅ Title */}
       <Text style={styles.title}>{title}</Text>
 
-      <TouchableOpacity onPress={() => navigation.navigate("NotificationSettingsScreen")}>
-        <View>
-          <Icon name="notifications-outline" size={28} color="#333" />
-          {unreadCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{unreadCount}</Text>
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
+      {/* ✅ Notification Icon — only show if no back arrow */}
+      {!showBack ? (
+        <TouchableOpacity onPress={() => navigation.navigate("NotificationSettingsScreen")}>
+          <View>
+            <Icon name="notifications-outline" size={26} color="#333" />
+            {unreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{unreadCount}</Text>
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      ) : (
+        <View style={{ width: 26 }} /> // placeholder for balance
+      )}
     </View>
   );
 }
@@ -75,6 +83,9 @@ const styles = StyleSheet.create({
     padding: 15,
     backgroundColor: "#f5f5f5",
     elevation: 2,
+  },
+  iconBtn: {
+    padding: 4,
   },
   title: {
     fontSize: 20,

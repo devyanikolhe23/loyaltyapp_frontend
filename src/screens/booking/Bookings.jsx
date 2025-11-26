@@ -15,10 +15,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE } from '@env';
 const BASE_URL = `${API_BASE}`;
 
-
-const MyBookingsScreen = ({ navigation }) => {
+const MyBookingsScreen = ({ navigation, route }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { vehicleNumber } = route.params || {};
 
   const fetchData = async () => {
     try {
@@ -30,16 +30,25 @@ const MyBookingsScreen = ({ navigation }) => {
         return;
       }
 
-      const bookingsRes = await axios.get(`${BASE_URL}/bookings/?no_pagination=true`, {
+      // ✅ Build base URL
+      let url = `${BASE_URL}/api/bookings/?no_pagination=true`;
+
+      // ✅ Add optional vehicle filter
+      if (vehicleNumber) {
+        url += `&vehicle_number=${vehicleNumber}`;
+      }
+
+      // ✅ Fetch user bookings
+      const bookingsRes = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Make sure we handle pagination safely
+      // ✅ Normalize response (handle pagination or array)
       const bookingsData = Array.isArray(bookingsRes.data)
         ? bookingsRes.data
         : bookingsRes.data.results || [];
 
-      // Map bookings using `service_title` from serializer
+      // ✅ Format bookings safely
       const formattedBookings = bookingsData.map((b) => ({
         ...b,
         serviceName: b.service_title || "Booked",
@@ -54,17 +63,19 @@ const MyBookingsScreen = ({ navigation }) => {
     }
   };
 
+
+
   useFocusEffect(
     useCallback(() => {
       fetchData();
-    }, [])
+    }, [vehicleNumber])
+    //  [vehicleNumber])
   );
 
   const getStatusColor = (status) => {
     switch (status) {
       case "pending":
         return "#f39c12";
-      case "confirmed":
       case "in_progress":
         return "#27ae60";
       case "ready_for_pickup":
@@ -82,7 +93,6 @@ const MyBookingsScreen = ({ navigation }) => {
     switch (status) {
       case "pending":
         return "Booked";
-      case "confirmed":
       case "in_progress":
         return "In Progress";
       case "ready_for_pickup":

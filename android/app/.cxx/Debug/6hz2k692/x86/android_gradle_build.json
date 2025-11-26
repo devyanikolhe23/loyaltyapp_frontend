@@ -2,7 +2,10 @@
   "buildFiles": [
     "/home/dell/loyaltyapp_frontend/node_modules/@react-native-async-storage/async-storage/android/build/generated/source/codegen/jni/CMakeLists.txt",
     "/home/dell/loyaltyapp_frontend/node_modules/@react-native-community/datetimepicker/android/build/generated/source/codegen/jni/CMakeLists.txt",
+    "/home/dell/loyaltyapp_frontend/node_modules/@react-native-picker/picker/android/src/main/jni/CMakeLists.txt",
     "/home/dell/loyaltyapp_frontend/node_modules/react-native-gesture-handler/android/build/generated/source/codegen/jni/CMakeLists.txt",
+    "/home/dell/loyaltyapp_frontend/node_modules/react-native-image-picker/android/build/generated/source/codegen/jni/CMakeLists.txt",
+    "/home/dell/loyaltyapp_frontend/node_modules/react-native-maps/android/src/main/jni/CMakeLists.txt",
     "/home/dell/loyaltyapp_frontend/node_modules/react-native-reanimated/android/build/generated/source/codegen/jni/CMakeLists.txt",
     "/home/dell/loyaltyapp_frontend/node_modules/react-native-safe-area-context/android/src/main/jni/CMakeLists.txt",
     "/home/dell/loyaltyapp_frontend/node_modules/react-native-screens/android/src/main/jni/CMakeLists.txt",
@@ -32,6 +35,7 @@
       "artifactName": "appmodules",
       "output": "/home/dell/loyaltyapp_frontend/android/app/build/intermediates/cxx/Debug/6hz2k692/obj/x86/libappmodules.so",
       "runtimeFiles": [
+        "/home/dell/loyaltyapp_frontend/android/app/build/intermediates/cxx/Debug/6hz2k692/obj/x86/libreact_codegen_rnpicker.so",
         "/home/dell/loyaltyapp_frontend/android/app/build/intermediates/cxx/Debug/6hz2k692/obj/x86/libreact_codegen_safeareacontext.so",
         "/home/dell/loyaltyapp_frontend/android/app/build/intermediates/cxx/Debug/6hz2k692/obj/x86/libreact_codegen_rnscreens.so",
         "/home/dell/.gradle/caches/9.0.0/transforms/4a43f4c703af9db55321da22f838845e/transformed/fbjni-0.7.0/prefab/modules/fbjni/libs/android.x86/libfbjni.so",
@@ -49,6 +53,16 @@
       "abi": "x86",
       "artifactName": "react_codegen_RNDateTimePickerCGen"
     },
+    "react_codegen_RNImagePickerSpec::@f66ee9a2efecfb28bee4": {
+      "toolchain": "toolchain",
+      "abi": "x86",
+      "artifactName": "react_codegen_RNImagePickerSpec"
+    },
+    "react_codegen_RNMapsSpecs::@5748abef1962d24942ec": {
+      "toolchain": "toolchain",
+      "abi": "x86",
+      "artifactName": "react_codegen_RNMapsSpecs"
+    },
     "react_codegen_RNVectorIconsSpec::@479809fae146501fd34d": {
       "toolchain": "toolchain",
       "abi": "x86",
@@ -63,6 +77,17 @@
       "toolchain": "toolchain",
       "abi": "x86",
       "artifactName": "react_codegen_rngesturehandler_codegen"
+    },
+    "react_codegen_rnpicker::@e8bb2e9e833f47d0d516": {
+      "toolchain": "toolchain",
+      "abi": "x86",
+      "artifactName": "react_codegen_rnpicker",
+      "output": "/home/dell/loyaltyapp_frontend/android/app/build/intermediates/cxx/Debug/6hz2k692/obj/x86/libreact_codegen_rnpicker.so",
+      "runtimeFiles": [
+        "/home/dell/.gradle/caches/9.0.0/transforms/14e956ae35158f2ae2ec04c9d916bffd/transformed/react-android-0.82.0-debug/prefab/modules/reactnative/libs/android.x86/libreactnative.so",
+        "/home/dell/.gradle/caches/9.0.0/transforms/14e956ae35158f2ae2ec04c9d916bffd/transformed/react-android-0.82.0-debug/prefab/modules/jsi/libs/android.x86/libjsi.so",
+        "/home/dell/.gradle/caches/9.0.0/transforms/4a43f4c703af9db55321da22f838845e/transformed/fbjni-0.7.0/prefab/modules/fbjni/libs/android.x86/libfbjni.so"
+      ]
     },
     "react_codegen_rnreanimated::@8afabad14bfffa3f8b9a": {
       "toolchain": "toolchain",

@@ -16,7 +16,7 @@ const ServiceScreen = () => {
 
   const fetchServices = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/services/`);
+      const response = await axios.get(`${BASE_URL}/api/services/`);
        if (Array.isArray(response.data.results)) {
       setServices(response.data.results);
     } 

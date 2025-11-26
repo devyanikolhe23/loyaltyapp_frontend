@@ -25,7 +25,19 @@ const VehicleRecallsScreen = () => {
 
   return (
     <View style={styles.container}>
-     
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <Ionicons name="arrow-back" size={24} color="#fff" onPress={() => navigation.goBack()} />
+        <Text style={styles.headerTitle}>Vehicle Recalls</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      {/* VIN Input */}
+      <View style={styles.inputRow}>
+        <TextInput placeholder="Enter your VIN" placeholderTextColor="#9CA3AF" style={styles.input} />
+        <TouchableOpacity style={styles.checkBtn}><Text style={{ color: "#fff" }}>Check</Text></TouchableOpacity>
+      </View>
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <Text style={styles.section}>Active Recalls</Text>

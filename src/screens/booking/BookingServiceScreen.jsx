@@ -17,446 +17,577 @@ import { API_BASE } from '@env';
 
 const BASE_URL = `${API_BASE}`;
 
+
+
 export default function BookingServiceScreen({ navigation, route = {} }) {
+
+  // =====================
+  // BASIC PARAMS (HEAD)
+  // =====================
+  const defaultVehicle = route?.params?.defaultVehicle || null;
+  console.log("Incoming defaultVehicle:", route.params?.defaultVehicle);
+
+  const { promo, offer, preselectedServices, discount, source } =
+    route.params || {};
+
   const isEdit = !!route.params?.isEdit;
   const existingBooking = route.params?.booking ?? {};
+
+  // HEAD offer params
+  const offerId = route.params?.offerId || null;
+  const incomingServiceId = route.params?.serviceId || null;
+  const incomingDiscount = route.params?.discount || 0;
+  const incomingOfferTitle = route.params?.offerTitle || "";
+
+  // ============================
+  // EXTRA PARAMS (feature03)
+  // ============================
   const prefillData = route.params?.prefillData || {};
+
+  // Reward booking params
   const rewardId = route.params?.rewardId || null;
   const rewardTitle = route.params?.rewardTitle || null;
   const rewardPoints = route.params?.rewardPoints || null;
   const rewardServiceId = route.params?.serviceId || null;
 
+  // Coupons
   const appliedCouponCode = route.params?.appliedCouponCode || null;
   const appliedCouponTitle = route.params?.appliedCouponTitle || null;
 
   // Earning rule params
-  const { earningRuleId, rewardType, rewardTitle: earningRuleTitle, minSpend } = route.params || {};
+  const {
+    earningRuleId,
+    rewardType,
+    rewardTitle: earningRuleTitle,
+    minSpend,
+  } = route.params || {};
 
   useEffect(() => {
     console.log("Route params →", route.params);
   }, [route.params]);
 
-  // === State Management ===
+  // ============================
+  // MERGED SERVICES INITIAL STATE
+  // ============================
   const [services, setServices] = useState(() => {
+    // ✔ Reward booking pre-sets service
     if (rewardServiceId) {
       return [{ id: rewardServiceId }];
-    } else if (isEdit && Array.isArray(existingBooking?.services)) {
-      return existingBooking.services.map((s) => ({ id: s.id, title: s.title }));
-    } else {
-      return [];
     }
+
+    // ✔ Existing booking edit
+    if (isEdit && Array.isArray(existingBooking?.services)) {
+      return existingBooking.services.map((s) => ({
+        id: s.id,
+        title: s.title,
+      }));
+    }
+
+    // ✔ Offer screen selecting a single service
+    if (incomingServiceId) {
+      return [{ id: incomingServiceId }];
+    }
+
+    // ✔ Preselected services from promotion/other screens
+    if (Array.isArray(preselectedServices)) {
+      return preselectedServices.map((s) => ({
+        id: s.id,
+        title: s.title,
+      }));
+    }
+
+    return [];
   });
+};
 
-  const [appointmentDate, setAppointmentDate] = useState(
-    isEdit ? existingBooking?.appointment_date ?? null : null
-  );
-  const [appointmentTime, setAppointmentTime] = useState(
-    isEdit ? existingBooking?.appointment_time ?? null : null
-  );
+const [appointmentDate, setAppointmentDate] = useState(
+  isEdit ? existingBooking?.appointment_date ?? null : null
+);
+const [appointmentTime, setAppointmentTime] = useState(
+  isEdit ? existingBooking?.appointment_time ?? null : null
+);
 
-  const [vehicle, setVehicle] = useState(() => {
-    if (prefillData.vehicle_make) {
-      return {
-        make: prefillData.vehicle_make,
-        model: prefillData.vehicle_model,
-        year: prefillData.vehicle_year,
-      };
-    } else if (isEdit) {
-      return {
-        make: existingBooking?.vehicle_make ?? "",
-        model: existingBooking?.vehicle_model ?? "",
-        year: existingBooking?.vehicle_year ?? "",
-      };
-    } else {
-      return { make: "", model: "", year: "" };
-    }
-  });
-  const [originalPrice, setOriginalPrice] = useState(null);
-  const [discountedPrice, setDiscountedPrice] = useState(null);
-  const [bookingId, setBookingId] = useState(null);
+// ========================
+// State Hooks
+// ========================
+const [vehicle, setVehicle] = useState(() => {
+  if (prefillData?.vehicle_make) {
+    return {
+      make: prefillData.vehicle_make,
+      model: prefillData.vehicle_model,
+      year: prefillData.vehicle_year,
+    };
+  } else if (isEdit) {
+    return {
+      make: existingBooking?.vehicle_make ?? "",
+      model: existingBooking?.vehicle_model ?? "",
+      year: existingBooking?.vehicle_year ?? "",
+    };
+  } else {
+    return { id: null, make: "", model: "", year: "", vehicleNumber: "" };
+  }
+});
 
- 
-  const handleApplyCoupon = async () => {
-    if (!appliedCouponCode) {
-      Alert.alert("No Coupon", "Please select a coupon first.");
-      return;
-    }
-    let token = await AsyncStorage.getItem("access");
-    if (!token) {
-      Alert.alert("Login Required", "Please login again.");
-      return;
-    }
+const [originalPrice, setOriginalPrice] = useState(null);
+const [discountedPrice, setDiscountedPrice] = useState(null);
+const [bookingId, setBookingId] = useState(null);
 
-    try {
-      const payload = {
-        services: services.map((s) => s.id),
-        appointment_date: appointmentDate,
-        appointment_time: appointmentTime,
-        vehicle_make: vehicle.make,
-        vehicle_model: vehicle.model,
-        vehicle_year: vehicle.year,
-      };
+const [availableOffers, setAvailableOffers] = useState([]);
+const [selectedOffer, setSelectedOffer] = useState(null);
 
-      // 🔹 Create booking if not exists
-      let tempBookingId = bookingId;
-      if (!tempBookingId) {
-        const bookingRes = await axios.post(`${BASE_URL}/bookings/`, payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        tempBookingId = bookingRes.data.id;
-        setBookingId(tempBookingId);
-      }
+// ========================
+// Handle Apply Coupon
+// ========================
+const handleApplyCoupon = async () => {
+  if (!appliedCouponCode) {
+    Alert.alert("No Coupon", "Please select a coupon first.");
+    return;
+  }
+  let token = await AsyncStorage.getItem("access");
+  if (!token) {
+    Alert.alert("Login Required", "Please login again.");
+    return;
+  }
 
-      // 🔹 Apply coupon
-      const res = await axios.post(
-        `${BASE_URL}/api/coupons/apply/`,
-        { coupon_code: appliedCouponCode, booking_id: tempBookingId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setOriginalPrice(res.data.original_price);
-      setDiscountedPrice(res.data.discounted_price);
-      Alert.alert("Coupon Applied", res.data.message);
-    } catch (error) {
-      console.log("Full Coupon Error →", error.response?.data);
-
-      // Extract the exact message from backend
-      const backendError = error.response?.data;
-
-      let userMessage = "Coupon application failed.";
-
-      // Check ALL possible places where backend puts the message
-      const errorText = 
-        backendError?.detail || 
-        backendError?.error || 
-        backendError?.message || 
-        backendError?.non_field_errors?.[0] ||
-        backendError?.coupon_code?.[0] ||
-        JSON.stringify(backendError);
-
-      // Now match the actual text
-      const lowerText = errorText.toLowerCase();
-
-      if (lowerText.includes("expired")) {
-        userMessage = `Sorry, coupon "${appliedCouponCode}" has expired.`;
-      }
-      else if (lowerText.includes("invalid") || lowerText.includes("not found") || lowerText.includes("does not exist")) {
-        userMessage = `Coupon code "${appliedCouponCode}" is invalid.`;
-      }
-      else if (lowerText.includes("already used") || lowerText.includes("already applied")) {
-        userMessage = `Coupon "${appliedCouponCode}" has already been used.`;
-      }
-      else if (lowerText.includes("minimum") || lowerText.includes("spend")) {
-        userMessage = errorText; // Keep backend's clear message
-      }
-      else if (lowerText.includes("not applicable") || lowerText.includes("service")) {
-        userMessage = `Coupon "${appliedCouponCode}" is not valid for selected services.`;
-      }
-      else {
-        userMessage = errorText.includes("Coupon") ? errorText : "Unable to apply coupon.";
-      }
-
-      Alert.alert("Coupon Error", userMessage, [{ text: "OK" }]);
-    }};
-
-
-  useEffect(() => {
-    console.log("BookingServiceScreen mounted", {
-      isEdit,
-      existingBooking,
-      services,
-      appointmentDate,
-      appointmentTime,
-      vehicle,
-    });
-  }, []);
-
-  // === Refresh Token Helper ===
-  const refreshAccessToken = async () => {
-    try {
-      const refresh = await AsyncStorage.getItem("refresh");
-      if (!refresh) return null;
-
-      const response = await axios.post(
-        `${BASE_URL}/api/token/refresh/`,
-        { refresh }
-      );
-
-      const newAccess = response.data.access;
-      await AsyncStorage.setItem("access", newAccess);
-      return newAccess;
-    } catch {
-      return null;
-    }
-  };
-  const handleBooking = async () => {
-    if (
-      services.length === 0 ||
-      !appointmentDate ||
-      !appointmentTime ||
-      !vehicle.make ||
-      !vehicle.model ||
-      !vehicle.year
-    ) {
-      Alert.alert("Missing Information", "Please fill all details before proceeding.");
-      return;
-    }
-
-    let token = await AsyncStorage.getItem("access");
-    if (!token) {
-      Alert.alert("Authentication Error", "Please login again.");
-      return;
-    }
-
-    const bookingPayload = {
+  try {
+    const payload = {
       services: services.map((s) => s.id),
       appointment_date: appointmentDate,
       appointment_time: appointmentTime,
       vehicle_make: vehicle.make,
       vehicle_model: vehicle.model,
       vehicle_year: vehicle.year,
-      ...(rewardId ? { reward_id: rewardId } : {}),
-      ...(earningRuleId ? { earningRuleId: earningRuleId } : {}),
     };
 
+    // 🔹 Create booking if not exists
+    let tempBookingId = bookingId;
+    if (!tempBookingId) {
+      const bookingRes = await axios.post(`${BASE_URL}/bookings/`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      tempBookingId = bookingRes.data.id;
+      setBookingId(tempBookingId);
+    }
+
+    // 🔹 Apply coupon
+    const res = await axios.post(
+      `${BASE_URL}/api/coupons/apply/`,
+      { coupon_code: appliedCouponCode, booking_id: tempBookingId },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    setOriginalPrice(res.data.original_price);
+    setDiscountedPrice(res.data.discounted_price);
+    Alert.alert("Coupon Applied", res.data.message);
+  } catch (error) {
+    console.log("Full Coupon Error →", error.response?.data);
+
+    const backendError = error.response?.data;
+    let userMessage = "Coupon application failed.";
+    const errorText =
+      backendError?.detail ||
+      backendError?.error ||
+      backendError?.message ||
+      backendError?.non_field_errors?.[0] ||
+      backendError?.coupon_code?.[0] ||
+      JSON.stringify(backendError);
+
+    const lowerText = errorText.toLowerCase();
+
+    if (lowerText.includes("expired")) {
+      userMessage = `Sorry, coupon "${appliedCouponCode}" has expired.`;
+    } else if (lowerText.includes("invalid") || lowerText.includes("not found") || lowerText.includes("does not exist")) {
+      userMessage = `Coupon code "${appliedCouponCode}" is invalid.`;
+    } else if (lowerText.includes("already used") || lowerText.includes("already applied")) {
+      userMessage = `Coupon "${appliedCouponCode}" has already been used.`;
+    } else if (lowerText.includes("minimum") || lowerText.includes("spend")) {
+      userMessage = errorText;
+    } else if (lowerText.includes("not applicable") || lowerText.includes("service")) {
+      userMessage = `Coupon "${appliedCouponCode}" is not valid for selected services.`;
+    } else {
+      userMessage = errorText.includes("Coupon") ? errorText : "Unable to apply coupon.";
+    }
+
+    Alert.alert("Coupon Error", userMessage, [{ text: "OK" }]);
+  }
+};
+
+// ========================
+// useEffects
+// ========================
+useEffect(() => {
+  console.log("BookingServiceScreen mounted", {
+    isEdit,
+    existingBooking,
+    services,
+    appointmentDate,
+    appointmentTime,
+    vehicle,
+  });
+}, []);
+
+useEffect(() => {
+  if (route.params?.defaultVehicle) {
+    setVehicle({
+      id: route.params.defaultVehicle.id,
+      make: route.params.defaultVehicle.make || "",
+      model: route.params.defaultVehicle.model || "",
+      year: route.params.defaultVehicle.year || "",
+      vehicleNumber:
+        route.params.defaultVehicle.vehicleNumber ||
+        route.params.defaultVehicle.vehicle_number ||
+        "",
+    });
+  }
+}, [route.params?.defaultVehicle]);
+
+useEffect(() => {
+  const fetchOffers = async () => {
     try {
-      let finalBookingData;
-      let finalTotalPrice = null;
-      let originalPriceForDisplay = originalPrice;
+      const res = await axios.get(`${BASE_URL}/api/offers/`);
+      if (!res.data) return;
 
-      // ——————— RESCHEDULE CASE ———————
-      if (isEdit && existingBooking?.id) {
-        const res = await axios.put(
-          `${BASE_URL}/bookings/${existingBooking.id}/`,
-          bookingPayload,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        Alert.alert("Success", "Booking rescheduled successfully!");
-        navigation.navigate("MyBookingsScreen", { refresh: true });
-        return;
-      }
+      const now = new Date();
+      const validOffers = res.data.filter(
+        (offer) =>
+          offer.is_active &&
+          new Date(offer.valid_from) <= now &&
+          new Date(offer.valid_to) >= now
+      );
 
-      // ——————— COUPON ALREADY APPLIED (bookingId exists) ———————
-      if (bookingId) {
-        // Re-fetch the booking that already has the discount applied
-        const latestRes = await axios.get(`${BASE_URL}/bookings/${bookingId}/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        finalBookingData = latestRes.data;
-        finalTotalPrice = discountedPrice || latestRes.data.total_price;
-      }
-      // ——————— NORMAL BOOKING (no coupon yet) ———————
-      else {
-        const res = await axios.post(`${BASE_URL}/bookings/`, bookingPayload, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        finalBookingData = res.data;
-        finalTotalPrice = res.data.total_price;
-      }
+      setAvailableOffers(validOffers);
 
-      // ——————— Build Alert Message ———————
-      let title = "Booking Confirmed";
-      let message = `Your service has been booked successfully!`;
+      if (offerId) {
+        const offer = validOffers.find((o) => o.id === offerId);
+        if (offer) {
+          setSelectedOffer(offer);
 
-      if (rewardId) {
-        title = "Reward Booking Confirmed";
-        message = `${rewardTitle} booked!\nFinal Price: ₹${parseFloat(finalTotalPrice).toFixed(2)}`;
-      }
-      else if (earningRuleId) {
-        const total = parseFloat(finalTotalPrice);
-        const min = parseFloat(minSpend || 0);
-        if (total >= min) {
-          title = "Earn Points Booking Confirmed";
-          message = `You qualified for bonus points!\nFinal Price: ₹${total.toFixed(2)}`;
-        } else {
-          const shortBy = (min - total).toFixed(2);
-          message = `₹${shortBy} more to earn points!\nFinal Price: ₹${total.toFixed(2)}`;
+          if (offer.offer_type === "fixed" && offer.services.length > 0) {
+            setServices(
+              offer.services.map((s) => ({
+                id: s.id,
+                title: s.title,
+                price: s.price || 0,
+              }))
+            );
+          } else if (offer.offer_type === "flexible") {
+            Alert.alert(
+              "Special Offer",
+              `${offer.title} - ${offer.discount_percentage}% off! Select any service.`
+            );
+          }
         }
       }
-      else if (appliedCouponCode) {
-        title = "Coupon Applied!";
-        const saved = (originalPriceForDisplay - finalTotalPrice).toFixed(2);
-        message = `Coupon ${appliedCouponCode} applied!\nYou saved ₹${saved}\nFinal Price: ₹${parseFloat(finalTotalPrice).toFixed(2)}`;
-      }
-
-      Alert.alert(title, message, [
-        {
-          text: "OK",
-          onPress: () => {
-            navigation.navigate("Services", {
-              screen: "BookingConfirmationScreen",
-              params: {
-                booking: finalBookingData,
-                totalPrice: finalTotalPrice,
-                originalPrice: originalPriceForDisplay,
-                couponApplied: appliedCouponCode || null,
-              },
-            });
-          },
-        },
-      ]);
-    } catch (error) {
-      console.log("Booking Error →", error.response?.data || error);
-      Alert.alert(
-        "Error",
-        error.response?.data?.detail || "Something went wrong. Please try again."
-      );
+    } catch (err) {
+      console.log("Error fetching offers:", err);
     }
   };
-  // === Booking Handler ===
-  // const handleBooking = async () => {
-  //   if (
-  //     services.length === 0 ||
-  //     !appointmentDate ||
-  //     !appointmentTime ||
-  //     !vehicle.make ||
-  //     !vehicle.model ||
-  //     !vehicle.year
-  //   ) {
-  //     Alert.alert("Missing Information", "Please fill all details before proceeding.");
-  //     return;
-  //   }
+  fetchOffers();
+}, [offerId]);
 
-  //   let token = await AsyncStorage.getItem("access");
-  //   if (!token) {
-  //     Alert.alert("Authentication Error", "Please login again.", [
-  //       { text: "OK", onPress: () => navigation.navigate("LoginScreen") },
-  //     ]);
-  //     return;
-  //   }
+useEffect(() => {
+  const serviceIds = route.params?.serviceIds || [];
+  if (serviceIds.length > 0) {
+    const autoSelectServices = async () => {
+      try {
+        const requests = serviceIds.map((id) =>
+          axios.get(`${BASE_URL}/api/services/${id}/`)
+        );
+        const responses = await Promise.all(requests);
+        const fetchedServices = responses.map((res) => ({
+          id: res.data.id,
+          title: res.data.title,
+          price: res.data.price,
+        }));
+        setServices(fetchedServices);
+      } catch (err) {
+        console.log("Error auto-selecting services:", err);
+      }
+    };
+    autoSelectServices();
+  }
+}, [route.params?.serviceIds]);
 
-  //   const bookingPayload = {
-  //     services: services.map((s) => s.id),
-  //     appointment_date: appointmentDate,
-  //     appointment_time: appointmentTime,
-  //     vehicle_make: vehicle.make,
-  //     vehicle_model: vehicle.model,
-  //     vehicle_year: vehicle.year,
-  //     ...(rewardId ? { reward_id: rewardId } : {}),
-  //     ...(earningRuleId ? { earningRuleId: earningRuleId } : {}),
-  //   };
+useEffect(() => {
+  const promoServices = route.params?.preselectedServices || [];
+  const promoDiscount = route.params?.discount || 0;
 
-  //   console.log("Booking Payload:", bookingPayload);
-  //   if (bookingId) {
-  //     try {
-  //       const finalToken = await AsyncStorage.getItem("access");
-  //       const finalBooking = await axios.get(`${BASE_URL}/bookings/${bookingId}/`, {
-  //         headers: { Authorization: `Bearer ${finalToken}` },
-  //       });
+  if (promoServices.length > 0) {
+    setServices(
+      promoServices.map((s) => ({
+        id: s.id,
+        title: s.title,
+        price: s.price || 0,
+      }))
+    );
+  }
 
-  //     const finalPrice = discountedPrice ?? response.data.total_price;
+  if (promoDiscount > 0) {
+    setSelectedOffer({
+      title: route.params.offerTitle || "Special Promotion",
+      discount_percentage: promoDiscount,
+    });
+  }
+}, [route.params?.preselectedServices, route.params?.discount]);
 
-  //       Alert.alert(
-  //         "Booking Confirmed",
-  //         `Your booking has been confirmed successfully.\n\nFinal Price: ₹${finalPrice.toFixed(2)}`,
-  //         [
-  //           {
-  //             text: "OK",
-  //             onPress: () =>
-  //               navigation.navigate("Services", {
-  //                 screen: "BookingConfirmationScreen",
-  //                 params: {
-  //                   booking: finalBooking.data,
-  //                   totalPrice: finalPrice,
-  //                   rewardType: route.params?.rewardType,
-  //                   couponApplied: appliedCouponCode,
-  //                 },
-  //               }),
-  //           },
-  //         ]
-  //       );
-  //       return; 
-  //     } catch (err) {
-  //       console.log("Coupon booking fetch error:", err.response?.data || err.message);
-  //     }
-  //   }
-  //   try {
-  //     let response;
+// ========================
+// 🔥 Fetch User Bookings Helper
+// ========================
+// === Refresh Token Helper ===
+const refreshAccessToken = async () => {
+  try {
+    const refresh = await AsyncStorage.getItem("refresh");
+    if (!refresh) return null;
 
-  //     if (isEdit && existingBooking?.id) {
-  //       response = await axios.put(
-  //         `${BASE_URL}/bookings/${existingBooking.id}/`,
-  //         bookingPayload,
-  //         { headers: { Authorization: `Bearer ${token}` } }
-  //       );
+    const response = await axios.post(
+      `${BASE_URL}/api/token/refresh/`,
+      { refresh }
+    );
 
-  //       Alert.alert("Success", "Booking rescheduled successfully!", [
-  //         {
-  //           text: "OK",
-  //           onPress: () =>
-  //             navigation.navigate("MyBookingsScreen", { refresh: true }),
-  //         },
-  //       ]);
-  //     } else {
-  //       response = await axios.post(
-  //         `${BASE_URL}/bookings/`,
-  //         bookingPayload,
-  //         { headers: { Authorization: `Bearer ${token}` } }
-  //       );
+    const newAccess = response.data.access;
+    await AsyncStorage.setItem("access", newAccess);
+    return newAccess;
+  } catch {
+    return null;
+  }
+};
 
-  //       let alertTitle = "Booking Confirmed";
-  //       let alertMessage = "Your service has been booked successfully!";
+// ======================================================
+// 🔥 Fetch All User Bookings (used to block booking)
+// ======================================================
+const fetchUserBookings = async () => {
+  try {
+    let token = await AsyncStorage.getItem("access");
+    if (!token) return [];
 
-  //       if (rewardId) {
-  //         alertTitle = "Reward Booking Confirmed";
-  //         alertMessage = `Your booking for "${rewardTitle}" has been created successfully!\n\nTotal Price: ₹${response.data.total_price}\nPoints will be deducted after service completion.`;
-  //       }
-  //       else if (earningRuleId) {
-  //         const totalPrice = parseFloat(response.data.total_price || 0);
-  //         const minRequired = parseFloat(minSpend || 0);
+    try {
+      const res = await axios.get(
+        `${BASE_URL}/api/bookings/?no_pagination=true`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return res.data;
+    } catch (err) {
+      // If token expired, try refreshing it
+      if (err.response?.status === 401) {
+        const newAccess = await refreshAccessToken();
+        if (newAccess) {
+          const retryRes = await axios.get(
+            `${BASE_URLS}/api/bookings/?no_pagination=true`,
+            { headers: { Authorization: `Bearer ${newAccess}` } }
+          );
+          return retryRes.data;
+        }
+      }
+      console.log("Fetch Booking Error:", err);
+      return [];
+    }
+  } catch (err) {
+    console.log("Unexpected Fetch Error:", err);
+    return [];
+  }
+};
 
-  //         if (totalPrice >= minRequired) {
-  //           // User WILL get points → celebrate!
-  //           alertTitle = "Earn Points Booking Confirmed";
-  //           alertMessage = `Congratulations! You've qualified for bonus points!\n\nMinimum spend: ₹${minSpend}\nYour total: ₹${totalPrice.toFixed(2)}\nPoints will be awarded after service completion.`;
-  //         } else {
-  //           // User did NOT qualify → be honest
-  //           const shortBy = (minRequired - totalPrice).toFixed(2);
-  //           alertTitle = "Booking Confirmed";
-  //           alertMessage = `Booking successful!\n\nYou're ₹${shortBy} short of earning bonus points.\nAdd more services next time to earn rewards!`;
-  //         }
-  //       }
-  //       else {
-  //         alertMessage = "Your service has been booked successfully!";
-  //       }
+// ======================================================
+// 🔥 BLOCK BOOKING IF SAME CAR HAS ACTIVE SERVICE
+// ======================================================
+const checkActiveBookingForThisCar = async () => {
+  const allBookings = await fetchUserBookings();
 
-  //       Alert.alert(alertTitle, alertMessage, [
-  //         {
-  //           text: "OK",
-  //           onPress: () => {
-  //             navigation.navigate("Services", {
-  //               screen: "BookingConfirmationScreen",
-  //               params: {
-  //                 booking: response.data,
-  //                 totalPrice: response.data.total_price,
-  //                 rewardType: route.params?.rewardType,
-  //               },
-  //             });
-  //           },
-  //         },
-  //       ]);
+  if (!allBookings || allBookings.length === 0) return false;
 
+  const activeBooking = allBookings.find(
+    (b) =>
+      b.vehicle_make === vehicle.make &&
+      b.vehicle_model === vehicle.model &&
+      b.vehicle_year === vehicle.year &&
+      ["in_progress", "completed", "ready_for_pickup"].includes(b.status)
+  );
 
-  //     }
-  //   } catch (error) {
-  //     console.log("Booking Error:", error?.response?.data ?? error.message);
-  //     Alert.alert(
-  //       "Error",
-  //       `Booking failed: ${error?.response?.data?.detail || error.message}`
-  //     );
-  //   }
-  // };
+  if (activeBooking) {
+    Alert.alert(
+      "Booking Not Allowed",
+      "You cannot book a new service for this car until your current service is completed/closed."
+    );
+    return true; // ❌ block
+  }
 
-  return (
-    <View style={styles.container}>
-      <Header
-        title={isEdit ? "Reschedule Booking" : "Booking"}
-        showBack={true}
-        navigation={navigation}
-      />
+  return false; // 👍 allow
+};
 
-      {/* ===== BANNER: Works for BOTH Rewards AND Recall Services ===== */}
-      {(rewardId || prefillData?.service_name) && (
+// ======================================================
+// ➕ BOOKING HANDLER
+// ======================================================
+const handleBooking = async () => {
+  if (
+    services.length === 0 ||
+    !appointmentDate ||
+    !appointmentTime ||
+    !vehicle.make ||
+    !vehicle.model ||
+    !vehicle.year
+  ) {
+    Alert.alert("Missing Information", "Please fill all details before proceeding.");
+    return;
+  }
+
+  let token = await AsyncStorage.getItem("access");
+  if (!token) {
+    Alert.alert("Authentication Error", "Please login again.");
+    return;
+  }
+
+  // 🚫 BLOCK BOOKING FOR SAME CAR
+  const isBlocked = await checkActiveBookingForThisCar();
+  if (isBlocked) return;
+
+  // Determine discount
+  let discount = 0;
+  let offerTitle = "";
+
+  // 1️⃣ If coming from a preselected banner promotion
+  if (route.params?.discount) {
+    discount = route.params.discount;
+    offerTitle = route.params.offerTitle || "";
+  }
+
+  // 2️⃣ Else if coming from a selected offer in the system
+  else if (offerId) {
+    const selectedOffer = availableOffers.find(o => o.id === offerId);
+    if (selectedOffer) {
+      discount = selectedOffer.discount_percentage || 0;
+      offerTitle = selectedOffer.title || "";
+    }
+  }
+
+  // ========== Prepare Payload ==========
+  const bookingPayload = {
+    services: services.map((s) => s.id),
+    appointment_date: appointmentDate,
+    appointment_time: appointmentTime,
+    vehicle: vehicle.id,
+    vehicle_make: vehicle.make,
+    vehicle_model: vehicle.model,
+    vehicle_year: vehicle.year,
+    vehicle_number: vehicle.vehicleNumber,
+    discount,       // include discount in booking payload
+    offer_title: offerTitle,
+    ...(rewardId ? { reward_id: rewardId } : {}),
+    ...(earningRuleId ? { earningRuleId: earningRuleId } : {}),
+
+  };
+
+  try {
+    let finalBookingData;
+    let finalTotalPrice = null;
+    let originalPriceForDisplay = originalPrice;
+
+    // ——————— HANDLE RESCHEDULE / EDIT BOOKING ———————
+    if (isEdit && existingBooking?.id) {
+      const res = await axios.put(
+        `${BASE_URL}/bookings/${existingBooking.id}/`,
+        bookingPayload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      Alert.alert("Success", "Booking rescheduled successfully!", [
+        {
+          text: "OK",
+          onPress: () => navigation.navigate("MyBookingsScreen", { refresh: true }),
+        },
+      ]);
+      return;
+    }
+
+    // ——————— FETCH OR CREATE BOOKING ———————
+    if (bookingId) {
+      // Booking already exists (coupon applied)
+      const latestRes = await axios.get(`${BASE_URL}/bookings/${bookingId}/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      finalBookingData = latestRes.data;
+      finalTotalPrice = discountedPrice || latestRes.data.total_price;
+    } else {
+      // New booking
+      const res = await axios.post(`${BASE_URL}/bookings/`, bookingPayload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      finalBookingData = res.data;
+
+      // Map selected services with prices
+      const selectedServicesWithPrice = services.map((s) => ({
+        id: s.id,
+        title: s.title,
+        price: s.price || 0,
+      }));
+
+      finalTotalPrice = selectedServicesWithPrice.reduce((sum, s) => sum + s.price, 0);
+
+      // Attach services info to booking data for confirmation screen
+      finalBookingData.selectedServices = selectedServicesWithPrice;
+    }
+
+    // ——————— BUILD ALERT MESSAGE ———————
+    let title = "Booking Confirmed";
+    let message = `Your service has been booked successfully!`;
+
+    if (rewardId) {
+      title = "Reward Booking Confirmed";
+      message = `${rewardTitle} booked!\nFinal Price: ₹${parseFloat(finalTotalPrice).toFixed(2)}`;
+    } else if (earningRuleId) {
+      const total = parseFloat(finalTotalPrice);
+      const min = parseFloat(minSpend || 0);
+      if (total >= min) {
+        title = "Earn Points Booking Confirmed";
+        message = `You qualified for bonus points!\nFinal Price: ₹${total.toFixed(2)}`;
+      } else {
+        const shortBy = (min - total).toFixed(2);
+        message = `₹${shortBy} more to earn points!\nFinal Price: ₹${total.toFixed(2)}`;
+      }
+    } else if (appliedCouponCode) {
+      title = "Coupon Applied!";
+      const saved = (originalPriceForDisplay - finalTotalPrice).toFixed(2);
+      message = `Coupon ${appliedCouponCode} applied!\nYou saved ₹${saved}\nFinal Price: ₹${parseFloat(finalTotalPrice).toFixed(2)}`;
+    }
+
+    // ——————— SHOW ALERT & NAVIGATE ———————
+    Alert.alert(title, message, [
+      {
+        text: "OK",
+        onPress: () => {
+          navigation.navigate("Services", {
+            screen: "BookingConfirmationScreen",
+            params: {
+              booking: finalBookingData,
+              totalPrice: finalTotalPrice,
+              originalPrice: originalPriceForDisplay,
+              couponApplied: appliedCouponCode || null,
+              discount: route.params?.discount || 0,
+              offerTitle: route.params?.offerTitle || "",
+              promo: route.params?.promo || null,
+              source: route.params?.promo ? "promotion" : "offer",
+            },
+          });
+        },
+      },
+    ]);
+  } catch (error) {
+    console.log("Booking Error →", error.response?.data || error);
+    Alert.alert(
+      "Error",
+      error.response?.data?.detail || "Something went wrong. Please try again."
+    );
+  }
+
+return (
+  <View style={styles.container}>
+    <Header
+      title={isEdit ? "Reschedule Booking" : "Booking"}
+      showBack={true}
+      navigation={navigation}
+    />
+
+    {/* ===== BANNER: Works for BOTH Rewards AND Recall Services ===== */}
+    {
+      (rewardId || prefillData?.service_name) && (
         <View style={styles.rewardBanner}>
           <Text style={styles.rewardBannerText}>
             {prefillData?.service_name
@@ -490,16 +621,20 @@ export default function BookingServiceScreen({ navigation, route = {} }) {
             </Text>
           )}
         </View>
-      )}
+      )
+    }
 
-      {/* ===== EARNING RULE NOTE ===== */}
-      {earningRuleId && (
+    {/* ===== EARNING RULE NOTE ===== */}
+    {
+      earningRuleId && (
         <Text style={{ marginBottom: 10, color: "#1E40AF", fontWeight: "500", marginHorizontal: 20 }}>
           Earn points on this booking! Minimum spend: ₹{minSpend}
         </Text>
-      )}
-      {/* ===== COUPON BANNER (Added) ===== */}
-      {appliedCouponCode && (
+      )
+    }
+    {/* ===== COUPON BANNER (Added) ===== */}
+    {
+      appliedCouponCode && (
         <View style={styles.couponBanner}>
           <Text style={styles.couponText}>
             Coupon Applied: {appliedCouponCode}
@@ -511,50 +646,54 @@ export default function BookingServiceScreen({ navigation, route = {} }) {
             <Text style={styles.couponButtonText}>Apply Coupon</Text>
           </TouchableOpacity>
         </View>
-      )}
+      )
+    }
 
-      {/* ===== DISCOUNTED PRICE ===== */}
-      {discountedPrice && (
+    {/* ===== DISCOUNTED PRICE ===== */}
+    {
+      discountedPrice && (
         <View style={styles.priceBox}>
           <Text style={styles.priceText}>
             Original: ₹{originalPrice?.toFixed(2)} →{" "}
             <Text style={styles.discounted}>₹{discountedPrice?.toFixed(2)}</Text>
           </Text>
         </View>
-      )}
+      )
+    }
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        <ServiceSelection
-          selectedServices={services}
-          onSelectServices={rewardId ? () => { } : setServices} // disable change if reward applied
-          prefillServiceName={prefillData.service_name}
-        />
+    <ScrollView
+      contentContainerStyle={styles.scrollContent}
+      keyboardShouldPersistTaps="handled"
+    >
+      <ServiceSelection
+        selectedServices={services}
+        onSelectServices={rewardId ? () => { } : setServices} // disable if reward applied
+        prefillServiceName={prefillData?.service_name}
+        selectedOffer={selectedOffer} // ⬅️ merged from origin/rfeature01
+      />
 
-        <DateTimePickerComponent
-          defaultDate={appointmentDate}
-          defaultTime={appointmentTime}
-          onSelectDateTime={(date, time) => {
-            setAppointmentDate(date);
-            setAppointmentTime(time);
-          }}
-        />
+      <DateTimePickerComponent
+        defaultDate={appointmentDate}
+        defaultTime={appointmentTime}
+        onSelectDateTime={(date, time) => {
+          setAppointmentDate(date);
+          setAppointmentTime(time);
+        }}
+      />
 
-        <VehicleDetailsForm
-          defaultVehicle={vehicle}
-          onChangeVehicle={setVehicle}
-        />
-      </ScrollView>
+      <VehicleDetailsForm
+        defaultVehicle={vehicle}
+        onChangeVehicle={setVehicle}
+      />
+    </ScrollView >
 
-      <TouchableOpacity style={styles.bookButton} onPress={handleBooking}>
-        <Text style={styles.bookNowText}>
-          {isEdit ? "Reschedule" : "Book Now"}
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
+    <TouchableOpacity style={styles.bookButton} onPress={handleBooking}>
+      <Text style={styles.bookNowText}>
+        {isEdit ? "Reschedule" : "Book Now"}
+      </Text>
+    </TouchableOpacity>
+  </View >
+);
 }
 
 const styles = StyleSheet.create({
@@ -602,6 +741,151 @@ const styles = StyleSheet.create({
   priceText: { fontSize: 16 },
   discounted: { color: "#2E7D32", fontWeight: "700" },
 });
+// === Booking Handler ===
+// const handleBooking = async () => {
+//   if (
+//     services.length === 0 ||
+//     !appointmentDate ||
+//     !appointmentTime ||
+//     !vehicle.make ||
+//     !vehicle.model ||
+//     !vehicle.year
+//   ) {
+//     Alert.alert("Missing Information", "Please fill all details before proceeding.");
+//     return;
+//   }
+
+//   let token = await AsyncStorage.getItem("access");
+//   if (!token) {
+//     Alert.alert("Authentication Error", "Please login again.", [
+//       { text: "OK", onPress: () => navigation.navigate("LoginScreen") },
+//     ]);
+//     return;
+//   }
+
+//   const bookingPayload = {
+//     services: services.map((s) => s.id),
+//     appointment_date: appointmentDate,
+//     appointment_time: appointmentTime,
+//     vehicle_make: vehicle.make,
+//     vehicle_model: vehicle.model,
+//     vehicle_year: vehicle.year,
+//     ...(rewardId ? { reward_id: rewardId } : {}),
+//     ...(earningRuleId ? { earningRuleId: earningRuleId } : {}),
+//   };
+
+//   console.log("Booking Payload:", bookingPayload);
+//   if (bookingId) {
+//     try {
+//       const finalToken = await AsyncStorage.getItem("access");
+//       const finalBooking = await axios.get(`${BASE_URL}/bookings/${bookingId}/`, {
+//         headers: { Authorization: `Bearer ${finalToken}` },
+//       });
+
+//     const finalPrice = discountedPrice ?? response.data.total_price;
+
+//       Alert.alert(
+//         "Booking Confirmed",
+//         `Your booking has been confirmed successfully.\n\nFinal Price: ₹${finalPrice.toFixed(2)}`,
+//         [
+//           {
+//             text: "OK",
+//             onPress: () =>
+//               navigation.navigate("Services", {
+//                 screen: "BookingConfirmationScreen",
+//                 params: {
+//                   booking: finalBooking.data,
+//                   totalPrice: finalPrice,
+//                   rewardType: route.params?.rewardType,
+//                   couponApplied: appliedCouponCode,
+//                 },
+//               }),
+//           },
+//         ]
+//       );
+//       return; 
+//     } catch (err) {
+//       console.log("Coupon booking fetch error:", err.response?.data || err.message);
+//     }
+//   }
+//   try {
+//     let response;
+
+//     if (isEdit && existingBooking?.id) {
+//       response = await axios.put(
+//         `${BASE_URL}/bookings/${existingBooking.id}/`,
+//         bookingPayload,
+//         { headers: { Authorization: `Bearer ${token}` } }
+//       );
+
+//       Alert.alert("Success", "Booking rescheduled successfully!", [
+//         {
+//           text: "OK",
+//           onPress: () =>
+//             navigation.navigate("MyBookingsScreen", { refresh: true }),
+//         },
+//       ]);
+//     } else {
+//       response = await axios.post(
+//         `${BASE_URL}/bookings/`,
+//         bookingPayload,
+//         { headers: { Authorization: `Bearer ${token}` } }
+//       );
+
+//       let alertTitle = "Booking Confirmed";
+//       let alertMessage = "Your service has been booked successfully!";
+
+//       if (rewardId) {
+//         alertTitle = "Reward Booking Confirmed";
+//         alertMessage = `Your booking for "${rewardTitle}" has been created successfully!\n\nTotal Price: ₹${response.data.total_price}\nPoints will be deducted after service completion.`;
+//       }
+//       else if (earningRuleId) {
+//         const totalPrice = parseFloat(response.data.total_price || 0);
+//         const minRequired = parseFloat(minSpend || 0);
+
+//         if (totalPrice >= minRequired) {
+//           // User WILL get points → celebrate!
+//           alertTitle = "Earn Points Booking Confirmed";
+//           alertMessage = `Congratulations! You've qualified for bonus points!\n\nMinimum spend: ₹${minSpend}\nYour total: ₹${totalPrice.toFixed(2)}\nPoints will be awarded after service completion.`;
+//         } else {
+//           // User did NOT qualify → be honest
+//           const shortBy = (minRequired - totalPrice).toFixed(2);
+//           alertTitle = "Booking Confirmed";
+//           alertMessage = `Booking successful!\n\nYou're ₹${shortBy} short of earning bonus points.\nAdd more services next time to earn rewards!`;
+//         }
+//       }
+//       else {
+//         alertMessage = "Your service has been booked successfully!";
+//       }
+
+//       Alert.alert(alertTitle, alertMessage, [
+//         {
+//           text: "OK",
+//           onPress: () => {
+//             navigation.navigate("Services", {
+//               screen: "BookingConfirmationScreen",
+//               params: {
+//                 booking: response.data,
+//                 totalPrice: response.data.total_price,
+//                 rewardType: route.params?.rewardType,
+//               },
+//             });
+//           },
+//         },
+//       ]);
+
+
+//     }
+//   } catch (error) {
+//     console.log("Booking Error:", error?.response?.data ?? error.message);
+//     Alert.alert(
+//       "Error",
+//       `Booking failed: ${error?.response?.data?.detail || error.message}`
+//     );
+//   }
+// };
+
+
 
 // import React, { useState, useEffect } from "react";
 // import {

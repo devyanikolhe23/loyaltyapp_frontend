@@ -4,9 +4,14 @@ import HomeScreen from '../screens/home/home_dashboard';
 import BookingServiceScreen from '../screens/booking/BookingServiceScreen';
 import PromotionsPage from '../screens/rewards/PromotionsScreen';
 import PromotionsDetailsScreen from '../screens/rewards/PromotionDetails';
-import NotificationSettingsScreen from '../screens/user/NotificationsScreen'
+import NotificationSettingsScreen from '../screens/user/NotificationsScreen';
 import ServiceStack from '../navigation/ServiceStack';
 import ServiceStatusScreen from "../screens/services/ServiceStatusScreen";
+import OfferScreen from '../screens/Offers/OfferScreen';
+import BookingConfirmationScreen from '../screens/bookingconfirmation/BookingConfirmationScreen';
+import RewardsStack from './RewardsStack';
+import AuthStack from './AuthStack';
+
 const Stack = createStackNavigator();
 
 
@@ -16,6 +21,7 @@ export default function HomeStackNavigator() {
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="BookingServiceScreen" component={BookingServiceScreen} />
       <Stack.Screen name="ServiceStatusScreen" component={ServiceStatusScreen} />
+      <Stack.Screen name="OfferScreen" component={OfferScreen} />
       <Stack.Screen
         name="PromotionsScreen"
         component={PromotionsPage}
@@ -36,7 +42,17 @@ export default function HomeStackNavigator() {
         component={ServiceStack}
         options={{ headerShown: false }}
       />
-      
+
+      <Stack.Screen
+        name="BookingConfirmationScreen"
+        component={BookingConfirmationScreen}
+        options={{ headerShown: false }}
+      />
+
+      <Stack.Screen name="RewardsStack" component={RewardsStack}/>
+      <Stack.Screen name="AuthStack" component={AuthStack}/>
+
+
     </Stack.Navigator>
   );
 }

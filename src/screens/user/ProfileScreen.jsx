@@ -61,7 +61,7 @@ const ProfileScreen = ({ navigation }) => {
         }
 
         const user = JSON.parse(storedUser);
-        const response = await axios.get(`${BASE_URL}/users/${user.id}/`, {
+        const response = await axios.get(`${BASE_URL}/api/users/${user.id}/`, {
           headers: { Authorization: `Bearer ${access}` },
         });
 
@@ -315,7 +315,7 @@ const ProfileScreen = ({ navigation }) => {
             >
               <Entypo name="chevron-right" size={20} color="#888" />
             </TouchableOpacity>
-          </View>
+          </View> 
         </View>
 
         {/* 🔹 More Section */}
@@ -333,7 +333,7 @@ const ProfileScreen = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.item}
-            onPress={() => navigation.navigate("LoyaltyRewardsScreen")}
+            onPress={() => navigation.navigate('LoyaltyRewardsScreen')}
           >
             <FontAwesome5 name="medal" size={18} color="#444" />
             <Text style={styles.itemText}>{t("loyaltyrewards")}</Text>
@@ -342,7 +342,7 @@ const ProfileScreen = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.item}
-            onPress={() => navigation.navigate("ReferFriendScreen")}
+            onPress={() => navigation.navigate('ReferFriendScreen')}
           >
             <Ionicons name="person-add-outline" size={20} color="#444" />
             <Text style={styles.itemText}>{t("referfriend")}</Text>
@@ -354,6 +354,13 @@ const ProfileScreen = ({ navigation }) => {
           >
             <Ionicons name="ticket-outline" size={20} color="#444" />
             <Text style={styles.itemText}>{("My Coupons")}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => navigation.navigate('MyVehiclesScreen')}
+          >
+            <Ionicons name="car-outline" size={20} color="#444" />
+            <Text style={styles.itemText}>My Vehicles</Text>
             <Entypo name="chevron-right" size={20} color="#888" />
           </TouchableOpacity>
 

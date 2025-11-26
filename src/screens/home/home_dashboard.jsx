@@ -13,35 +13,58 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from "@react-navigation/native";
 import Header from '../../components/Header';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import { API_BASE } from '@env';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import { Alert, View, Text, ActivityIndicator } from "react-native";
+import { useEffect, useState } from "react";
+import { useNavigation } from "@react-navigation/native";
+import { API_BASE } from "@env"; // Use env for consistency
 
 export default function HomeScreen() {
   const navigation = useNavigation();
+
+  // ===== Recall Data =====
   const [recalls, setRecalls] = useState([]);
+
+  // ===== Promotions =====
+  const [featuredPromotions, setFeaturedPromotions] = useState([]);
+  const [banner, setBanner] = useState(null);
+
   const [loading, setLoading] = useState(true);
 
+  // ===== FETCH RECALLS AND PROMOTIONS =====
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = await AsyncStorage.getItem("access");
+
+        // Fetch recalls
         const recallsRes = await axios.get(`${API_BASE}/api/home/recalls`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         setRecalls(recallsRes.data || []);
+
+        // Fetch promotions
+        const promoRes = await axios.get(`${API_BASE}/api/promotion-banners/`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (Array.isArray(promoRes.data)) {
+          setFeaturedPromotions(promoRes.data);
+        } else if (Array.isArray(promoRes.data.results)) {
+          setFeaturedPromotions(promoRes.data.results);
+        }
       } catch (error) {
         console.log("❌ Fetch Error:", error.response?.data || error.message);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
+  // ===== HANDLE RECALL STATUS =====
   const handleCheckStatus = (item) => {
-    console.log("Recall Status from API:", item.status);
-
     if (item.status === "completed") {
       Alert.alert("Recall Status", "✅ This recall service was already completed.");
     } else {
@@ -49,7 +72,7 @@ export default function HomeScreen() {
     }
   };
 
-
+  // ===== HANDLE SCHEDULE SERVICE =====
   const handleScheduleService = async (item) => {
     try {
       const token = await AsyncStorage.getItem("access");
@@ -67,37 +90,51 @@ export default function HomeScreen() {
         notes: `Recall: ${item.recall_number} - ${item.recall_title}`,
       };
 
-      // Call correct endpoint
-      const endpoint = item.status === 'completed'
-        ? `${API_BASE}/api/vehicle-recalls/${item.id}/service_again/`
-        : `${API_BASE}/api/vehicle-recalls/${item.id}/schedule_service/`;
+      const endpoint =
+        item.status === "completed"
+          ? `${API_BASE}/api/vehicle-recalls/${item.id}/service_again/`
+          : `${API_BASE}/api/vehicle-recalls/${item.id}/schedule_service/`;
 
       try {
         const response = await axios.post(endpoint, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        // Use backend prefill if available
         if (response.data?.prefill_data) {
           prefillData = { ...prefillData, ...response.data.prefill_data };
         }
       } catch (apiError) {
         console.log("Recall endpoint failed (optional):", apiError.response?.data);
-        // Still continue — we have fallback data
       }
 
-      // Navigate with prefilled data
-      navigation.navigate("BookingServiceScreen", {
-        prefillData: prefillData
-      });
-
+      navigation.navigate("BookingServiceScreen", { prefillData });
     } catch (error) {
       console.log("Navigation error:", error);
       Alert.alert("Error", "Failed to open booking form.");
     }
   };
-  
 
+  // ===== HANDLE PROMOTION BOOKING =====
+  const handleBookService = async () => {
+    const guest = await AsyncStorage.getItem("guest");
+    const user = await AsyncStorage.getItem("user");
+
+    if (guest === "true" && !user) {
+      Alert.alert(
+        "Login Required",
+        "Please login first to book a service.",
+        [
+          { text: "Cancel", style: "cancel" },
+          { text: "Login", onPress: () => navigation.navigate("Login") }
+        ]
+      );
+      return;
+    }
+
+    navigation.navigate("BookingServiceScreen");
+  };
+
+  // ===== LOADING STATE =====
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -107,13 +144,14 @@ export default function HomeScreen() {
     );
   }
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <Header title="Home" />
-      <ScrollView showsVerticalScrollIndicator={false}>
+return (
+  <SafeAreaView style={styles.container}>
+    <Header title="Home" />
+    <ScrollView showsVerticalScrollIndicator={false}>
 
-        {/* 🚗 Vehicle Recalls Slider */}
-        {recalls.length > 0 && (
+      {/* 🚗 Vehicle Recalls Slider */}
+      {
+        recalls.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Vehicle Recalls</Text>
             <ScrollView
@@ -171,10 +209,12 @@ export default function HomeScreen() {
               ))}
             </ScrollView>
           </>
-        )}
+        )
+      }
 
-        {/* 🏎️ Book Service Banner (unchanged) */}
-        {recalls.length === 0 && (
+      {/* 🏎️ Book Service Banner (unchanged) */}
+      {
+        recalls.length === 0 && (
           <View style={styles.banner}>
             <Image
               source={{ uri: 'https://www.linkpicture.com/q/sportscar.png' }}
@@ -193,90 +233,91 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        )}
+        )
+      }
 
-        {/* ⚙️ Quick Actions */}
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.quickActions}>
-          <TouchableOpacity
-            style={styles.quickActionCard}
-            onPress={() => navigation.navigate("BookingServiceScreen")}
-          >
-            <Icon name="build-outline" size={24} color="#2B70F7" />
-            <Text style={styles.quickActionText}>Book a Service</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickActionCard}
-            onPress={() => navigation.navigate("ServiceStatusScreen")}
-          >
-            <Icon name="clipboard-outline" size={24} color="#2B70F7" />
-            <Text style={styles.quickActionText}>Service Status</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* 🎯 Recent Promotions (unchanged) */}
-        <Text style={styles.sectionTitle}>Recent Promotions</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.promotions}
+      {/* ⚙️ Quick Actions */}
+      <Text style={styles.sectionTitle}>Quick Actions</Text>
+      <View style={styles.quickActions}>
+        <TouchableOpacity
+          style={styles.quickActionCard}
+          onPress={handleBookService}
         >
-          <View style={styles.promoCard}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("PromotionsScreen", { title: "Exclusive Offer: 20% Off" })}
-            >
-              <Image
-                source={require('../../assets/images/carbanner.jpg')}
-                style={styles.promoImage}
-              />
-            </TouchableOpacity>
-            <Text style={styles.promoTitle}>Exclusive Offer: 20% Off</Text>
-            <Text style={styles.promoText}>On your next full service.</Text>
-          </View>
+          <Icon name="build-outline" size={24} color="#2B70F7" />
+          <Text style={styles.quickActionText}>Book a Service</Text>
+        </TouchableOpacity>
 
-          <View style={styles.promoCard}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("PromotionsScreen", { title: "Free Tire Check" })}
-            >
-              <Image
-                source={require('../../assets/images/carbanner.jpg')}
-                style={styles.placeholderImage}
-              />
-            </TouchableOpacity>
-            <Text style={styles.promoTitle}>Free Tire Check</Text>
-            <Text style={styles.promoText}>Ensure your safety today.</Text>
-          </View>
-        </ScrollView>
+        <TouchableOpacity
+          style={styles.quickActionCard}
+          onPress={() => navigation.navigate('Services', { screen: 'ServiceStatusScreen' })}
+        >
+          <Icon name="clipboard-outline" size={24} color="#2B70F7" />
+          <Text style={styles.quickActionText}>Service Status</Text>
+        </TouchableOpacity>
+      </View>
 
-        {/* 🔍 Explore Section (unchanged) */}
-        <Text style={styles.sectionTitle}>Explore</Text>
-        <View style={styles.exploreGrid}>
-          <TouchableOpacity style={styles.exploreCard} onPress={() => navigation.navigate("Services")}>
-            <Icon name="car-outline" size={24} color="#2B70F7" />
-            <Text style={styles.exploreText}>Services</Text>
-          </TouchableOpacity>
+      {/* 🎯 Recent Promotions (unchanged) */}
+      <Text style={styles.sectionTitle}>Recent Promotions</Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.promotions}
+      >
+        {featuredPromotions.length === 0 ? (
+          <Text style={{ marginLeft: 20, color: "#555" }}>No promotions available</Text>
+        ) : (
+          featuredPromotions.map((promo) => (
+            <View key={promo.id} style={styles.promoCard}>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate("PromotionsScreen", { promo })
+                }
+              >
+                <Image
+                  source={{ uri: promo.image }}
+                  style={styles.promoImage}
+                />
+              </TouchableOpacity>
 
-          <TouchableOpacity style={styles.exploreCard} onPress={() => navigation.navigate("Support")}>
-            <Icon name="headset-outline" size={24} color="#2B70F7" />
-            <Text style={styles.exploreText}>Support</Text>
-          </TouchableOpacity>
+              <Text style={styles.promoTitle}>{promo.title}</Text>
+              <Text style={styles.promoText}>
+                {promo.short_description || promo.description}
+              </Text>
+            </View>
+          ))
+        )}
+      </ScrollView >
 
-          <TouchableOpacity style={styles.exploreCard}>
-            <Icon name="pricetag-outline" size={24} color="#2B70F7" />
-            <Text style={styles.exploreText}>Offers</Text>
-          </TouchableOpacity>
+      {/* 🔍 Explore Section (unchanged) */}
+      < Text style={styles.sectionTitle} > Explore</Text >
+      <View style={styles.exploreGrid}>
+        <TouchableOpacity style={styles.exploreCard} onPress={() => navigation.navigate("Services")}>
+          <Icon name="car-outline" size={24} color="#2B70F7" />
+          <Text style={styles.exploreText}>Services</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity style={styles.exploreCard} onPress={() => navigation.navigate("Showroom")}>
-            <Icon name="location-outline" size={24} color="#2B70F7" />
-            <Text style={styles.exploreText}>Find Us</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+        <TouchableOpacity style={styles.exploreCard} onPress={() => navigation.navigate("Support")}>
+          <Icon name="headset-outline" size={24} color="#2B70F7" />
+          <Text style={styles.exploreText}>Support</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.exploreCard}
+          onPress={() => navigation.navigate('OfferScreen')}
+        >
+          <Icon name="pricetag-outline" size={24} color="#2B70F7" />
+          <Text style={styles.exploreText}>Offers</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.exploreCard} onPress={() => navigation.navigate("Showroom")}>
+          <Icon name="location-outline" size={24} color="#2B70F7" />
+          <Text style={styles.exploreText}>Find Us</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView >
+  </SafeAreaView >
+);
 }
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   loader: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F9FAFB' },
@@ -293,77 +334,126 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 2,
-  },
-  recallHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  recallTitle: { fontSize: 16, fontWeight: '600', color: '#111' },
-  recallTag: {
-    color: '#fff',
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 10,
-    fontWeight: '700',
-    fontSize: 12,
-  },
-  recallVehicle: { color: '#6B7280', marginTop: 6, fontSize: 13 },
-  recallDesc: { color: '#374151', marginTop: 6, lineHeight: 18 },
-  completedText: { color: '#16A34A', marginTop: 6, fontWeight: '500' },
-  recallBtnRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
-  recallButton: {
-    flex: 1,
-    height: 38,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 4,
-  },
-  recallBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
 
-  // 🔹 Your Original Styles (Unchanged)
-  banner: { marginHorizontal: 20, borderRadius: 16, overflow: 'hidden', backgroundColor: '#000' },
-  bannerImage: { width: '100%', height: 160, resizeMode: 'cover', position: 'absolute' },
-  bannerOverlay: { backgroundColor: 'rgba(0,0,0,0.5)', padding: 20, height: 160, justifyContent: 'center' },
-  bannerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
-  bannerSubtitle: { color: '#fff', marginTop: 5 },
-  bookNowButton: { backgroundColor: '#2B70F7', padding: 10, marginTop: 15, borderRadius: 8, alignSelf: 'flex-start' },
-  bookNowText: { color: '#fff', fontWeight: '600' },
-  sectionTitle: { marginTop: 25, marginLeft: 20, fontSize: 18, fontWeight: '600' },
-  quickActions: { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 20, marginTop: 15 },
-  quickActionCard: {
-    backgroundColor: '#fff',
-    width: '48%',
-    padding: 15,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    banner: {
+      marginHorizontal: 20,
+      borderRadius: 16,
+      overflow: 'hidden',
+      backgroundColor: '#000',
+    },
+    recallHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    recallTitle: { fontSize: 16, fontWeight: '600', color: '#111' },
+    recallTag: {
+      color: '#fff',
+      paddingHorizontal: 10,
+      paddingVertical: 3,
+      borderRadius: 10,
+      fontWeight: '700',
+      fontSize: 12,
+    },
+    recallVehicle: { color: '#6B7280', marginTop: 6, fontSize: 13 },
+    recallDesc: { color: '#374151', marginTop: 6, lineHeight: 18 },
+    completedText: { color: '#16A34A', marginTop: 6, fontWeight: '500' },
+    recallBtnRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+    recallButton: {
+      flex: 1,
+      height: 38,
+      borderRadius: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginHorizontal: 4,
+      alignSelf: 'flex-start',
+    },
+    bookNowText: {
+      color: '#fff',
+      fontWeight: '600',
+    },
+
+    sectionTitle: {
+      marginTop: 25,
+      marginLeft: 20,
+      fontSize: 18,
+      fontWeight: '600',
+    },
+
+    quickActions: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginHorizontal: 20,
+      marginTop: 15,
+    },
+    recallBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+
+    // 🔹 Your Original Styles (Unchanged)
+    banner: { marginHorizontal: 20, borderRadius: 16, overflow: 'hidden', backgroundColor: '#000' },
+    bannerImage: { width: '100%', height: 160, resizeMode: 'cover', position: 'absolute' },
+    bannerOverlay: { backgroundColor: 'rgba(0,0,0,0.5)', padding: 20, height: 160, justifyContent: 'center' },
+    bannerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+    bannerSubtitle: { color: '#fff', marginTop: 5 },
+    bookNowButton: { backgroundColor: '#2B70F7', padding: 10, marginTop: 15, borderRadius: 8, alignSelf: 'flex-start' },
+    bookNowText: { color: '#fff', fontWeight: '600' },
+    sectionTitle: { marginTop: 25, marginLeft: 20, fontSize: 18, fontWeight: '600' },
+    quickActions: { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 20, marginTop: 15 },
+    quickActionCard: {
+      backgroundColor: '#fff',
+      width: '48%',
+      padding: 15,
+      borderRadius: 12,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOpacity: 0.05,
+      shadowRadius: 3,
+      elevation: 2,
+    },
+    quickActionText: {
+      marginTop: 8,
+      fontWeight: '500',
+    },
+
+    promotions: {
+      marginTop: 15,
+      paddingLeft: 20,
+    },
+    promoCard: {
+      backgroundColor: '#fff',
+      borderRadius: 12,
+      padding: 10,
+      marginRight: 15,
+      width: 220,
+    },
+    promoImage: {
+      width: '100%',
+      height: 110,
+      borderRadius: 8,
+    },
+    promoTitle: {
+      fontWeight: '600',
+      marginTop: 10,
+    },
+    promoText: {
+      color: '#555',
+      marginTop: 4,
+    },
+
+    exploreGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginHorizontal: 20,
+      marginTop: 15,
+      justifyContent: 'space-between',
+    },
+    exploreCard: {
+      backgroundColor: '#fff',
+      width: '48%',
+      padding: 15,
+      borderRadius: 12,
+      marginBottom: 15,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOpacity: 0.05,
+      shadowRadius: 3,
+      elevation: 2,
+    },
+    exploreText: { marginTop: 8, fontWeight: '500' },
   },
-  quickActionText: { marginTop: 8, fontWeight: '500' },
-  promotions: { marginTop: 15, paddingLeft: 20 },
-  promoCard: { backgroundColor: '#fff', borderRadius: 12, padding: 10, marginRight: 15, width: 220 },
-  promoImage: { width: '100%', height: 110, borderRadius: 8 },
-  placeholderImage: { height: 110, backgroundColor: '#ddd', borderRadius: 8, width: '100%' },
-  promoTitle: { fontWeight: '600', marginTop: 10 },
-  promoText: { color: '#555', marginTop: 4 },
-  exploreGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: 20,
-    marginTop: 15,
-    justifyContent: 'space-between',
-  },
-  exploreCard: {
-    backgroundColor: '#fff',
-    width: '48%',
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 15,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  exploreText: { marginTop: 8, fontWeight: '500' },
 });

@@ -8,6 +8,7 @@ const RegistrationScreen = ({ navigation }) => {
   const [phone_number, setPhone_number] = useState('');
   const [password, setPassword] = useState('');
   const [confirm_password, setConfirm_password] = useState('');
+  const [referralCode, setReferralCode] = useState('');
 
   const handleRegister = async () => {
     if (!username || !email || !phone_number || !password || !confirm_password) {
@@ -19,14 +20,14 @@ const RegistrationScreen = ({ navigation }) => {
       Alert.alert('Error', 'Username must contain only letters.');
       return;
     }
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       Alert.alert('Error', 'Enter a valid email address.');
       return;
     }
 
-    const phoneRegex = /^[0-9]{10}$/; 
+    const phoneRegex = /^[0-9]{10}$/;
     if (!phoneRegex.test(phone_number)) {
       Alert.alert('Error', 'Phone number must contain 10 digits .');
       return;
@@ -59,6 +60,7 @@ const RegistrationScreen = ({ navigation }) => {
           phone_number,
           password,
           confirm_password,
+          referral_code: referralCode,
         }),
       });
 
@@ -68,7 +70,7 @@ const RegistrationScreen = ({ navigation }) => {
         Alert.alert('Success', 'Account created successfully!');
         navigation.navigate('Login');
       } else {
-        
+
         const errorMessage = Object.values(data).flat().join('\n');
         if (errorMessage.toLowerCase().includes('email')) {
           Alert.alert('Error', 'Email already exists.');
@@ -128,6 +130,14 @@ const RegistrationScreen = ({ navigation }) => {
           onChangeText={setConfirm_password}
           placeholderTextColor="#a0a0a0"
           secureTextEntry
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Referral Code (Optional)"
+          value={referralCode}
+          onChangeText={setReferralCode}
+          placeholderTextColor="#a0a0a0"
         />
 
         <TouchableOpacity

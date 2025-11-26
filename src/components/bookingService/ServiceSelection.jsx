@@ -3,11 +3,12 @@ import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import axios from "axios";
 import { MultiSelect } from "react-native-element-dropdown";
 import { API_BASE } from '@env';
-export default function ServiceSelection({ selectedServices = [], onSelectServices, prefillServiceName}) {
+export default function ServiceSelection({ selectedServices = [], onSelectServices, prefillServiceName, selectedOffer }) {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedValues, setSelectedValues] = useState(selectedServices.map(s => s.id));// ✅ array for multi-select
+  const [selectedValues, setSelectedValues] = useState(selectedServices.map((s) => s.id));// ✅ array for multi-select
 
+  // ⭐ FETCH ALL SERVICES
   useEffect(() => {
     axios
       .get(`${API_BASE}/services/?no_pagination=true`)
@@ -16,12 +17,25 @@ export default function ServiceSelection({ selectedServices = [], onSelectServic
           ? res.data
           : res.data.results || [];
 
-        const formatted = data.map((item) => ({
-          label: `${item.title} (₹${item.price})`,
-          value: item.id,
-          price: item.price,
-          title: item.title,
-        }));
+        const formatted = data.map((item) => {
+          let label = `${item.title} (₹${item.price})`;
+
+          // ✅ Add discounted price if a flexible offer is active
+          if (selectedOffer?.offer_type === "flexible" && selectedOffer.discount_percentage > 0) {
+            const discountedPrice = (
+              item.price * (1 - selectedOffer.discount_percentage / 100)
+            ).toFixed(0);
+            label += ` → ₹${discountedPrice} (${selectedOffer.discount_percentage}% off)`;
+          }
+
+          return {
+            label,
+            value: item.id,
+            price: item.price,
+            title: item.title,
+          };
+        });
+
 
         setServices(formatted);
         setLoading(false);
@@ -31,6 +45,7 @@ export default function ServiceSelection({ selectedServices = [], onSelectServic
         setLoading(false);
       });
   }, []);
+  // ✅ Run once initially or when offer changes
   useEffect(() => {
     if (!loading && prefillServiceName) {
       const matched = services.find(
@@ -43,7 +58,13 @@ export default function ServiceSelection({ selectedServices = [], onSelectServic
         ]);
       }
     }
-  }, [loading, prefillServiceName, services]);
+  }, [loading, prefillServiceName, services, selectedOffer]);
+
+  // ⭐ AUTO UPDATE DROPDOWN WHEN PARENT UPDATES SERVICES (OFFER AUTO-SELECT)
+  useEffect(() => {
+    setSelectedValues(selectedServices.map((s) => s.id));
+  }, [selectedServices]);
+
   const handleSelect = (items) => {
     setSelectedServices(items);
     const selectedDetails = services.filter((s) => items.includes(s.value));
@@ -51,36 +72,39 @@ export default function ServiceSelection({ selectedServices = [], onSelectServic
     console.log("✅ Selected services:", selectedDetails);
   };
 
-  if (loading) {
-    return (
-      <View style={{ marginTop: 20, alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-        <Text>Loading services...</Text>
-      </View>
-    );
-  }
-
   return (
     <View>
       <Text style={styles.sectionTitle}>Select Services</Text>
-      <MultiSelect
-        style={styles.dropdown}
-        data={services}
-        labelField="label"
-        valueField="value"
-        placeholder="Choose services"
-        value={selectedValues}
-        onChange={(items) => {
-          setSelectedValues(items);
-          const selectedDetails = services.filter(s => items.includes(s.value));
-          onSelectServices(selectedDetails.map(s => ({
-            id: s.value,
-            title: s.title,
-            price: s.price,
-          })));
-        }}
-      />
-    </View>
+
+      {loading ? (
+        <View style={{ marginTop: 20, alignItems: "center" }}>
+          <ActivityIndicator size="large" />
+          <Text>Loading services...</Text>
+        </View>
+      ) : (
+        <MultiSelect
+          style={styles.dropdown}
+          data={services}
+          labelField="label"
+          valueField="value"
+          placeholder="Choose services"
+          value={selectedValues}
+          onChange={(items) => {
+            setSelectedValues(items);
+
+            const selectedDetails = services
+              .filter((s) => items.includes(s.value))
+              .map((s) => ({
+                id: s.value,
+                title: s.title,
+                price: s.price,
+              }));
+
+            onSelectServices(selectedDetails);
+          }}
+        />
+      )}
+    </View >
   );
 }
 
