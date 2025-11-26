@@ -10,7 +10,9 @@ import BookingStack from "./BookingStack";
 import ServiceStack from "./ServiceStack";
 import AddVehiclesScreen from "../screens/user/AddVehicleScreen";
 import RewardsStack from "./RewardsStack";
-
+import BookingServiceScreen from "../screens/booking/BookingServiceScreen";
+import ReviewScreen from "../screens/rewards/ReviewScreen";
+import MyCouponsScreen from "../screens/rewards/MyCouponsScreen";
 const Stack = createNativeStackNavigator();
 
 export default function ProfileStack() {
@@ -26,6 +28,14 @@ export default function ProfileStack() {
        <Stack.Screen name="RewardsStack" component={RewardsStack}/>
        <Stack.Screen name="AddVehiclesScreen" component={AddVehiclesScreen} />
       
+      {/* <Stack.Screen
+        name="LanguagePicker"
+        component={LanguagePicker}
+        options={{ title: "Language Picker" }}
+      /> */}
+      <Stack.Screen name="BookingServiceScreen" component={BookingServiceScreen} />
+      <Stack.Screen name="ReviewScreen" component={ReviewScreen} />
+      <Stack.Screen name="MyCouponsScreen" component={MyCouponsScreen} />
     </Stack.Navigator>
   );
 }

@@ -1,17 +1,22 @@
-import { DeviceEventEmitter } from "react-native";
+import { Alert, DeviceEventEmitter } from "react-native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import React, { useState, useEffect } from "react";
 import ProfileScreen from "../screens/user/ProfileScreen";
+import ProfileStack from "./ProfileStack";
 import ServicesStack from "./ServiceStack";
 import BookingStack from "./BookingStack";
 import SupportStack from "./SupportStack";
 import BottomTabs from "./BottomTabs";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import RewardsStack from "./RewardsStack";
+import { useNavigation } from "@react-navigation/native";
+import { API_BASE } from "@env";
 
+const BASE_URL = `${API_BASE}`;
 const Drawer = createDrawerNavigator();
 
 export default function DrawerNavigator() {
+const navigation = useNavigation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const checkLogin = async () => {
@@ -41,6 +46,7 @@ export default function DrawerNavigator() {
     >
       {/* Always visible */}
       <Drawer.Screen name="Home" component={BottomTabs} />
+      <Drawer.Screen name="Profile" component={ProfileStack} />
       <Drawer.Screen name="Services" component={ServicesStack} />
       <Drawer.Screen name="Support" component={SupportStack} />
       <Drawer.Screen name="Coupons" component={RewardsStack} />

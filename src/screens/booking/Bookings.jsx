@@ -12,8 +12,9 @@ import axios from "axios";
 import Header from "../../components/Header";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`;
 
-const BASE_URL = "http://192.168.1.15:8000";
 
 const MyBookingsScreen = ({ navigation, route }) => {
   const [bookings, setBookings] = useState([]);
@@ -21,62 +22,62 @@ const MyBookingsScreen = ({ navigation, route }) => {
   const { vehicleNumber } = route.params || {};
 
   const fetchData = async () => {
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const token = await AsyncStorage.getItem("access");
-    if (!token) {
+      // 🔹 Fetch Token
+      const token = await AsyncStorage.getItem("access");
+      if (!token) {
+        setBookings([]);
+        return;
+      }
+
+      // 🔹 Build API URL with optional vehicle filter
+      let url = `${BASE_URL}/bookings/?no_pagination=true`;
+      if (vehicleNumber) {
+        url += `&vehicle_number=${vehicleNumber}`;
+      }
+
+      // 🚀 Fetch Bookings
+      const bookingsRes = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // 📌 Handle Pagination or Array
+      const bookingsData = Array.isArray(bookingsRes.data)
+        ? bookingsRes.data
+        : bookingsRes.data.results || [];
+
+      // 🔧 Format
+      const formattedBookings = bookingsData.map((b) => ({
+        ...b,
+        serviceName: b.service_title || "Booked",
+      }));
+
+      setBookings(formattedBookings);
+    } catch (error) {
+      console.log(
+        "❌ Error loading bookings:",
+        error.response?.data || error.message
+      );
       setBookings([]);
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    // Always fetch user bookings
-    let url = `${BASE_URL}/api/bookings/?no_pagination=true`;
-
-    // Add vehicle filter only if selected
-    if (vehicleNumber) {
-      url += `&vehicle_number=${vehicleNumber}`;
-    }
-
-    const bookingsRes = await axios.get(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const bookingsData = Array.isArray(bookingsRes.data)
-      ? bookingsRes.data
-      : bookingsRes.data.results || [];
-
-    const formattedBookings = bookingsData.map((b) => ({
-      ...b,
-      serviceName: b.service_title || "Booked",
-    }));
-
-    setBookings(formattedBookings);
-  } catch (error) {
-    console.log(
-      "❌ Error loading bookings:",
-      error.response?.data || error.message
-    );
-    setBookings([]);
-  } finally {
-    setLoading(false);
-  }
-};
-
-
+  };
 
   useFocusEffect(
     useCallback(() => {
       fetchData();
-    }, [vehicleNumber])
-    //  [vehicleNumber])
+    }, [vehicleNumber]) // 🔥 Re-fetch when vehicle filter changes
   );
+
+
 
   const getStatusColor = (status) => {
     switch (status) {
       case "pending":
         return "#f39c12";
-      // case "confirmed":
       case "in_progress":
         return "#27ae60";
       case "ready_for_pickup":
@@ -94,7 +95,6 @@ const MyBookingsScreen = ({ navigation, route }) => {
     switch (status) {
       case "pending":
         return "Booked";
-      // case "confirmed":
       case "in_progress":
         return "In Progress";
       case "ready_for_pickup":
@@ -162,6 +162,7 @@ const MyBookingsScreen = ({ navigation, route }) => {
     </View>
   );
 };
+
 
 export default MyBookingsScreen;
 

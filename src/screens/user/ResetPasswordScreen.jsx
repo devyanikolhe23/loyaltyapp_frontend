@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, Alert } from 'react-native';
 import axios from 'axios';
 import { useRoute, useNavigation } from '@react-navigation/native';
-
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`;
 const ResetPasswordScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -19,7 +20,7 @@ const ResetPasswordScreen = () => {
     }
 
     try {
-      await axios.post('http://192.168.1.15:8000/api/password-reset/confirm/', {
+      await axios.post(`${BASE_URL}/api/password-reset/confirm/`, {
         uid,
         token,
         new_password: newPassword,

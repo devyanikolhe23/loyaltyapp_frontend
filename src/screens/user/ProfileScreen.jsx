@@ -18,11 +18,15 @@ import MaterialIcon from "react-native-vector-icons/MaterialIcons";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import Entypo from "react-native-vector-icons/Entypo";
 import ProfileImagePicker from "../../components/profile/ProfileImagePicker";
-import { launchImageLibrary } from "react-native-image-picker";
+import { Picker } from "@react-native-picker/picker";
+import useAppTranslation from "../../hooks/useAppTranslation"; // ✅ custom translation hook
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`;
 
-const BASE_URL = "http://192.168.1.15:8000";
 
 const ProfileScreen = ({ navigation }) => {
+  const { t } = useAppTranslation(); // ✅ translation hook
+
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -62,7 +66,7 @@ const ProfileScreen = ({ navigation }) => {
         setProfile(response.data);
       } catch (error) {
         console.error("Error fetching profile:", error);
-        Alert.alert("Error", "Unable to load profile data.");
+        Alert.alert(t("error"), t("unable_load_profile"));
       } finally {
         setLoading(false);
       }
@@ -81,28 +85,22 @@ const ProfileScreen = ({ navigation }) => {
       });
 
       await AsyncStorage.setItem("user", JSON.stringify(profile));
-      Alert.alert("Success", "Profile updated successfully!");
+      Alert.alert(t("success"), t("profile_updated"));
       setEditing(false);
     } catch (error) {
       console.error("Error updating profile:", error);
-      Alert.alert("Error", "Failed to update profile.");
+      Alert.alert(t("error"), t("update_failed"));
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Image Upload / Delete Handlers
   const handleEditProfileImage = async () => {
-    Alert.alert(
-      "Profile Picture",
-      "Choose an option",
-      [
-        { text: "Upload", onPress: pickImage },
-        { text: "Delete", onPress: handleDeleteImage },
-        { text: "Cancel", style: "cancel" },
-      ],
-      { cancelable: true }
-    );
+    Alert.alert(t("profile_picture"), t("choose_option"), [
+      { text: t("upload"), onPress: pickImage },
+      { text: t("delete"), onPress: handleDeleteImage },
+      { text: t("cancel"), style: "cancel" },
+    ]);
   };
 
   const pickImage = async () => {
@@ -133,10 +131,10 @@ const ProfileScreen = ({ navigation }) => {
       setProfile(uploadResponse.data);
       await AsyncStorage.setItem("user", JSON.stringify(uploadResponse.data));
 
-      Alert.alert("Success", "Profile picture updated!");
+      Alert.alert(t("success"), t("picture_updated"));
     } catch (error) {
       console.error("Image upload error:", error);
-      Alert.alert("Error", "Failed to upload image.");
+      Alert.alert(t("error"), t("upload_failed"));
     }
   };
 
@@ -155,10 +153,10 @@ const ProfileScreen = ({ navigation }) => {
         JSON.stringify({ ...profile, image: null })
       );
 
-      Alert.alert("Profile picture removed!");
+      Alert.alert(t("success"), t("picture_removed"));
     } catch (error) {
       console.error("Error deleting image:", error);
-      Alert.alert("Error", "Failed to delete image.");
+      Alert.alert(t("error"), t("delete_failed"));
     }
   };
 
@@ -172,7 +170,7 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Header title="Profile" showBack={false} />
+      <Header title={t("profile")} showBack={false} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -191,21 +189,21 @@ const ProfileScreen = ({ navigation }) => {
             }}
             onEditPress={handleEditProfileImage}
           />
-          <Text style={styles.name}>{profile.username || "Guest User"}</Text>
+          <Text style={styles.name}>{profile.username || t("guest_user")}</Text>
           <View style={styles.memberTag}>
             <Text style={styles.memberText}>
-              {profile.membership || "Member"}
+              {profile.membership || t("member")}
             </Text>
           </View>
           <Text style={styles.joinedText}>
-            Joined {profile.joined || "2025"}
+            {t("joined")} {profile.joined || "2025"}
           </Text>
         </View>
 
         {/* 🔹 Account Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Account</Text>
+            <Text style={styles.sectionTitle}>{t("account")}</Text>
             <TouchableOpacity onPress={() => setEditing(!editing)}>
               <MaterialIcon
                 name={editing ? "close" : "edit"}
@@ -225,7 +223,7 @@ const ProfileScreen = ({ navigation }) => {
                 onChangeText={(text) =>
                   setProfile({ ...profile, username: text })
                 }
-                placeholder="Enter name"
+                placeholder={t("enter_name")}
               />
             ) : (
               <Text style={styles.itemText}>{profile.username}</Text>
@@ -240,7 +238,7 @@ const ProfileScreen = ({ navigation }) => {
                 style={styles.input}
                 value={profile.email}
                 onChangeText={(text) => setProfile({ ...profile, email: text })}
-                placeholder="Enter email"
+                placeholder={t("enter_email")}
               />
             ) : (
               <Text style={styles.itemText}>{profile.email}</Text>
@@ -257,7 +255,7 @@ const ProfileScreen = ({ navigation }) => {
                 onChangeText={(text) =>
                   setProfile({ ...profile, phone_number: text })
                 }
-                placeholder="Enter phone number"
+                placeholder={t("enter_phone")}
               />
             ) : (
               <Text style={styles.itemText}>{profile.phone_number}</Text>
@@ -274,7 +272,7 @@ const ProfileScreen = ({ navigation }) => {
                 onChangeText={(text) =>
                   setProfile({ ...profile, address: text })
                 }
-                placeholder="Enter address"
+                placeholder={t("enter_address")}
               />
             ) : (
               <Text style={styles.itemText}>{profile.address}</Text>
@@ -286,18 +284,18 @@ const ProfileScreen = ({ navigation }) => {
               style={styles.saveButton}
               onPress={handleSaveProfile}
             >
-              <Text style={styles.saveButtonText}>Save Changes</Text>
+              <Text style={styles.saveButtonText}>{t("save_changes")}</Text>
             </TouchableOpacity>
           )}
         </View>
 
         {/* 🔹 Preferences */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
+          <Text style={styles.sectionTitle}>{t("preferences")}</Text>
 
           <View style={styles.item}>
             <Ionicons name="notifications-outline" size={20} color="#444" />
-            <Text style={styles.itemText}>Notifications</Text>
+            <Text style={styles.itemText}>{t("notifications")}</Text>
             <Switch
               value={notificationsEnabled}
               onValueChange={setNotificationsEnabled}
@@ -306,25 +304,28 @@ const ProfileScreen = ({ navigation }) => {
             />
           </View>
 
-          {/* <View style={styles.item}>
+          {/* 🔹 Language Selector */}
+          <View style={styles.item}>
             <Ionicons name="language-outline" size={20} color="#444" />
-            <Text style={styles.itemText}>Language</Text>
-            <TouchableOpacity>
+            <Text style={styles.itemText}>{t("language")}</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("LanguagePicker")}
+            >
               <Entypo name="chevron-right" size={20} color="#888" />
             </TouchableOpacity>
-          </View> */}
+          </View>
         </View>
 
         {/* 🔹 More Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>More</Text>
+          <Text style={styles.sectionTitle}>{t("More")}</Text>
 
           <TouchableOpacity
             style={styles.item}
-            onPress={() => navigation.navigate('ServiceHistoryScreen')}
+            onPress={() => navigation.navigate("ServiceHistoryScreen")}
           >
             <FontAwesome5 name="history" size={18} color="#444" />
-            <Text style={styles.itemText}>Service History</Text>
+            <Text style={styles.itemText}>{t("servicehistory")}</Text>
             <Entypo name="chevron-right" size={20} color="#888" />
           </TouchableOpacity>
 
@@ -333,7 +334,7 @@ const ProfileScreen = ({ navigation }) => {
             onPress={() => navigation.navigate('LoyaltyRewardsScreen')}
           >
             <FontAwesome5 name="medal" size={18} color="#444" />
-            <Text style={styles.itemText}>Loyalty Rewards</Text>
+            <Text style={styles.itemText}>{t("loyaltyrewards")}</Text>
             <Entypo name="chevron-right" size={20} color="#888" />
           </TouchableOpacity>
 
@@ -342,7 +343,7 @@ const ProfileScreen = ({ navigation }) => {
             onPress={() => navigation.navigate('ReferFriendScreen')}
           >
             <Ionicons name="person-add-outline" size={20} color="#444" />
-            <Text style={styles.itemText}>Refer a Friend</Text>
+            <Text style={styles.itemText}>{t("referfriend")}</Text>
             <Entypo name="chevron-right" size={20} color="#888" />
           </TouchableOpacity>
 
@@ -352,6 +353,14 @@ const ProfileScreen = ({ navigation }) => {
           >
             <Ionicons name="car-outline" size={20} color="#444" />
             <Text style={styles.itemText}>My Vehicles</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => navigation.navigate("MyCouponsScreen")}
+          >
+            <Ionicons name="ticket-outline" size={20} color="#444" />
+            <Text style={styles.itemText}>{("My Coupons")}</Text>
             <Entypo name="chevron-right" size={20} color="#888" />
           </TouchableOpacity>
 

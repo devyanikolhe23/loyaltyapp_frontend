@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "rnpicker_autolinked_build",
+		"source" : "/home/bcs/Pictures/loyaltyapp/frontend/loyaltyapp_frontend/node_modules/@react-native-picker/picker/android/src/main/jni"
+	}
+}

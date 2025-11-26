@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, Alert } from 'react-native';
-
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`;
 const RegistrationScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -47,7 +48,7 @@ const RegistrationScreen = ({ navigation }) => {
     }
 
     try {
-      const response = await fetch('http://192.168.1.15:8000/api/register/', {
+      const response = await fetch(`${BASE_URL}/api/register/`, {
 
         method: 'POST',
         headers: {

@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   View,
@@ -11,7 +12,8 @@ import {
 import Ionicons from "react-native-vector-icons/Ionicons";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`;
 const BookingDetailsScreen = ({ route, navigation }) => {
   const { booking } = route.params || {};
   const isCancelled = booking?.status === "cancelled"; // ✅ Detect cancelled state
@@ -30,7 +32,7 @@ const BookingDetailsScreen = ({ route, navigation }) => {
               const token = await AsyncStorage.getItem("access");
 
               await axios.post(
-                `http://192.168.1.15:8000/bookings/${booking.id}/cancel/`,
+                `${BASE_URL}/bookings/${booking.id}/cancel/`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
               );

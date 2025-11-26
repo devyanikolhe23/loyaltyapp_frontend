@@ -1,163 +1,175 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  Switch,
+  FlatList,
   StyleSheet,
-  ScrollView,
-  SafeAreaView,
   TouchableOpacity,
-} from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
+import Icon from "react-native-vector-icons/Ionicons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import Header from "../../components/Header";
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`;
 
-const NotificationSettingsScreen = () => {
-  const navigation = useNavigation();
+export default function NotificationSettingsScreen({ navigation }) {
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const [settings, setSettings] = useState({
-    serviceDue: true,
-    appointmentReminders: true,
-    specialOffers: false,
-    newServices: true,
-    serviceProgress: true,
-    serviceCompletion: false,
-  });
+  // ✅ Fetch all notifications
+  const fetchNotifications = async () => {
+    try {
+      const token = await AsyncStorage.getItem("access");
+      if (!token) return;
 
-  const toggleSwitch = (key) => {
-    setSettings((prevState) => ({
-      ...prevState,
-      [key]: !prevState[key],
-    }));
+      const res = await axios.get(`${BASE_URL}/api/notifications/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("📩 Notifications from API:", res.data);
+      setNotifications(res.data);
+    } catch (err) {
+      console.log("❌ Notification fetch error:", err.response?.data || err.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      {/* ✅ Header with Back Arrow */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Notifications</Text>
-        <View style={styles.headerSpacer} />
+  // ✅ Mark notification as read
+  const markAsRead = async (id) => {
+    try {
+      const token = await AsyncStorage.getItem("access");
+      if (!token) return;
+
+      await axios.post(`${BASE_URL}/api/notifications/mark-read/${id}/`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Update UI locally after marking
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === id ? { ...n, is_read: true } : n
+        )
+      );
+    } catch (err) {
+      console.log("❌ Mark as read error:", err.response?.data || err.message);
+    }
+  };
+
+  // ✅ Pull to refresh
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchNotifications();
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  // ✅ Loader state
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={{ marginTop: 10 }}>Loading notifications...</Text>
       </View>
+    );
+  }
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* Service Reminders */}
-        <Text style={styles.sectionTitle}>Service Reminders</Text>
-        <SettingToggle
-          title="Service Due"
-          description="Get notified when your service is due."
-          value={settings.serviceDue}
-          onToggle={() => toggleSwitch('serviceDue')}
-        />
-        <SettingToggle
-          title="Appointment Reminders"
-          description="Receive reminders for upcoming appointments."
-          value={settings.appointmentReminders}
-          onToggle={() => toggleSwitch('appointmentReminders')}
-        />
+  // ✅ Empty state
+  if (notifications.length === 0) {
+    return (
+      <View style={styles.center}>
+        <Icon name="notifications-off-outline" size={60} color="#888" />
+        <Text style={{ fontSize: 16, color: "#555", marginTop: 10 }}>No notifications yet</Text>
+      </View>
+    );
+  }
 
-        {/* Promotional Alerts */}
-        <Text style={styles.sectionTitle}>Promotional Alerts</Text>
-        <SettingToggle
-          title="Special Offers"
-          description="Stay updated on special offers and discounts."
-          value={settings.specialOffers}
-          onToggle={() => toggleSwitch('specialOffers')}
+  // ✅ Render each notification item
+  const renderItem = ({ item }) => (
+    <TouchableOpacity
+      style={[styles.notificationCard, item.is_read && styles.readNotification]}
+      onPress={() => markAsRead(item.id)}
+    >
+      <View style={styles.iconContainer}>
+        <Icon
+          name={item.is_read ? "notifications-outline" : "notifications"}
+          size={26}
+          color={item.is_read ? "#999" : "#007AFF"}
         />
-        <SettingToggle
-          title="New Services"
-          description="Be the first to know about new services."
-          value={settings.newServices}
-          onToggle={() => toggleSwitch('newServices')}
-        />
-
-        {/* Service Status Updates */}
-        <Text style={styles.sectionTitle}>Service Status Updates</Text>
-        <SettingToggle
-          title="Service Progress"
-          description="Get real-time updates on your service progress."
-          value={settings.serviceProgress}
-          onToggle={() => toggleSwitch('serviceProgress')}
-        />
-        <SettingToggle
-          title="Service Completion"
-          description="Receive notifications when your service is completed."
-          value={settings.serviceCompletion}
-          onToggle={() => toggleSwitch('serviceCompletion')}
-        />
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.title, item.is_read && { color: "#777" }]}>{item.title}</Text>
+        <Text style={styles.message}>{item.message}</Text>
+        <Text style={styles.time}>{item.created_at}</Text>
+      </View>
+    </TouchableOpacity>
   );
-};
 
-const SettingToggle = ({ title, description, value, onToggle }) => (
-  <View style={styles.settingContainer}>
-    <View style={styles.textContainer}>
-      <Text style={styles.settingTitle}>{title}</Text>
-      <Text style={styles.settingDescription}>{description}</Text>
+  return (
+    <View style={styles.container}>
+      <Header title="Notifications" showBack={true} />
+      <FlatList
+        data={notifications}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id.toString()}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        contentContainerStyle={{ paddingBottom: 20 }}
+      />
     </View>
-    <Switch value={value} onValueChange={onToggle} />
-  </View>
-);
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#f5f6fa",
+    padding: 10,
   },
-
-  // ✅ Header
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 18,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#000",
-  },
-  headerSpacer: { width: 24 },
-
-  scrollContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 50,
-  },
-
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#555',
-    marginTop: 25,
-    marginBottom: 10,
-  },
-  settingContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderColor: '#eee',
-  },
-  textContainer: {
+  center: {
     flex: 1,
-    paddingRight: 10,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  settingTitle: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#000',
+  notificationCard: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 10,
+    elevation: 2,
   },
-  settingDescription: {
-    fontSize: 13,
-    color: '#666',
-    marginTop: 2,
+  readNotification: {
+    backgroundColor: "#f0f0f0",
+  },
+  iconContainer: {
+    marginRight: 10,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#222",
+  },
+  message: {
+    fontSize: 14,
+    color: "#555",
+    marginTop: 3,
+  },
+  time: {
+    fontSize: 12,
+    color: "#999",
+    marginTop: 5,
   },
 });
-
-export default NotificationSettingsScreen;

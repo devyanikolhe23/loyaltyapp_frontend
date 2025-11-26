@@ -12,7 +12,8 @@ import { navRef } from "../../navigation/navigationRef";
 import axios from 'axios';
 import { DeviceEventEmitter } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`;
 const LoginScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -30,11 +31,11 @@ const LoginScreen = ({ navigation }) => {
 
     setLoading(true);
 
-    try {
-      const response = await axios.post("http://192.168.1.15:8000/api/login/", {
-        username: username.trim(),
-        password: password,
-      });
+  try {
+    const response = await axios.post(`${BASE_URL}/api/login/`, {
+      username: username.trim(),
+      password: password,
+    });
 
       const access = response.data.tokens.access;
       const refresh = response.data.tokens.refresh;

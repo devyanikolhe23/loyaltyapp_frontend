@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, Alert } from 'react-native';
 import axios from 'axios';
-
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`;
 const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
 
   const handleSendCode = async () => {
     try {
-     const response = await axios.post('http://192.168.1.15:8000/send-verification-code/', { email });
+     const response = await axios.post(`${BASE_URL}/send-verification-code/`, { email });
 
 
       Alert.alert("Success", "Verification code sent to your email.");
