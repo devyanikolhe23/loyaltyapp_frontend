@@ -13,30 +13,14 @@ import {
 import Header from "../../components/Header";
 import axios from "axios";
 import { useNavigation, useIsFocused } from "@react-navigation/native";
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`;
 
 const OfferCard = ({ offer }) => {
   const navigation = useNavigation();
 
-  // Determine selected service IDs (single or multiple)
-  const serviceIds = Array.isArray(offer.services)
-    ? offer.services
-    : offer.service
-      ? [offer.service]
-      : [];
-
   return (
-    <TouchableOpacity
-      style={styles.offerCard}
-      onPress={() =>
-        navigation.navigate("BookingServiceScreen", {
-          offerId: offer.id,
-          serviceIds,
-          discount: offer.discount_percentage || 0,
-          offerTitle: offer.title || "",
-          source: "offer",
-        })
-      }
-    >
+    <View style={styles.offerCard}>
       <Image
         source={{ uri: offer.image_url || "https://via.placeholder.com/150" }}
         style={styles.offerImage}
@@ -55,8 +39,24 @@ const OfferCard = ({ offer }) => {
           {offer.valid_from ? new Date(offer.valid_from).toLocaleDateString() : ""} -{" "}
           {offer.valid_to ? new Date(offer.valid_to).toLocaleDateString() : ""}
         </Text>
+
+        {/* View Offer Button */}
+        <TouchableOpacity
+          style={styles.viewOfferBtn}
+          onPress={() => {
+            console.log("OFFER SENT TO VIEW DETAILS >>>", offer);
+            navigation.navigate("OfferStack", {
+              screen: "ViewOfferDetails",
+              params: { offer },
+            });
+          }}
+
+        >
+          <Text style={styles.viewOfferText}>View Offer</Text>
+        </TouchableOpacity>
+
       </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 
@@ -67,32 +67,21 @@ const OffersScreen = () => {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
 
-  const API_URL = "http://192.168.1.15:8000/api/offers/";
 
   // Fetch offers from backend
   const fetchOffers = async () => {
-  try {
-    const res = await axios.get(`${API_URL}?no_pagination=true`);
+    try {
+      const res = await axios.get(`${BASE_URL}/api/offers/?no_pagination=true`);
 
-    let data;
-
-    if (Array.isArray(res.data)) {
-      data = res.data;  // no pagination response
-    } else {
-      data = res.data.results || []; // paginated response
+      let data = Array.isArray(res.data) ? res.data : res.data.results || [];
+      setOffers(data);
+    } catch (err) {
+      console.log("Error fetching offers:", err.response?.data || err.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-
-    console.log("Parsed Offers:", data.map(o => o.title));
-    setOffers(data);
-
-  } catch (err) {
-    console.log("Error fetching offers:", err.response?.data || err.message);
-  } finally {
-    setLoading(false);
-    setRefreshing(false);
-  }
-};
-
+  };
 
   // Pull-to-refresh
   const onRefresh = () => {
@@ -140,6 +129,7 @@ const OffersScreen = () => {
 };
 
 export default OffersScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -192,6 +182,18 @@ const styles = StyleSheet.create({
     color: "#999",
     marginTop: 4,
   },
+  viewOfferBtn: {
+    marginTop: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#1976D2",
+    borderRadius: 6,
+    alignSelf: "flex-start",
+  },
+  viewOfferText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
   noOfferText: {
     textAlign: "center",
     color: "#777",
@@ -199,6 +201,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
 
 
 

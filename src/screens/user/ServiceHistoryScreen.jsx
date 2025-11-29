@@ -33,7 +33,7 @@ export default function ServiceHistoryScreen() {
         return;
       }
 
-      const response = await fetch(`${BASE_URL}/bookings/history/`, {
+      const response = await fetch(`${BASE_URL}/api/bookings/history/`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, A
 import axios from 'axios';
 import { API_BASE } from '@env';
 const BASE_URL = `${API_BASE}`;
+
 const VerifyOTPScreen = ({ navigation, route }) => {
   const { email } = route.params;
   const [code, setCode] = useState('');

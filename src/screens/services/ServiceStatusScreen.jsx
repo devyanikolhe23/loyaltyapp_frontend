@@ -12,6 +12,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE } from '@env';
 const BASE_URL = `${API_BASE}`;
+
 const statusSteps = [
   { key: "booked", label: "Service Booked", icon: "checkmark-circle-outline" },
   { key: "in_progress", label: "In Progress", icon: "reload-circle-outline" },

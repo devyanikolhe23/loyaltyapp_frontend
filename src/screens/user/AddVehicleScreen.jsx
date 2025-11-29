@@ -4,7 +4,8 @@ import { View, Text, StyleSheet } from 'react-native';
 import AddVehicleForm from '../../components/MyVehicles/AddVehicleForm';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'http://192.168.1.15:8000';
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`;
 
 const AddVehicleScreen = ({ navigation, route }) => {
   const { onVehicleAdded } = route.params || {};

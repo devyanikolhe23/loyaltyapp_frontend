@@ -303,17 +303,6 @@ const ProfileScreen = ({ navigation }) => {
               thumbColor="#fff"
             />
           </View>
-
-          {/* 🔹 Language Selector */}
-          <View style={styles.item}>
-            <Ionicons name="language-outline" size={20} color="#444" />
-            <Text style={styles.itemText}>{t("language")}</Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("LanguagePicker")}
-            >
-              <Entypo name="chevron-right" size={20} color="#888" />
-            </TouchableOpacity>
-          </View>
         </View>
 
         {/* 🔹 More Section */}

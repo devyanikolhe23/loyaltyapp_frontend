@@ -1,5 +1,5 @@
 
-
+import React, { useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet, Text } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import BookingDetailsCard from "../../components/bookingconfirmation/BookingDetailsCard";

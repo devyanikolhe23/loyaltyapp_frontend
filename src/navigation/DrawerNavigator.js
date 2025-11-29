@@ -46,7 +46,7 @@ const navigation = useNavigation();
     >
       {/* Always visible */}
       <Drawer.Screen name="Home" component={BottomTabs} />
-      <Drawer.Screen name="Profile" component={ProfileStack} />
+      <Drawer.Screen name="Profile" component={ProfileStack} options={{ drawerLabel: "Profile" }} />
       <Drawer.Screen name="Services" component={ServicesStack} />
       <Drawer.Screen name="Support" component={SupportStack} />
       <Drawer.Screen name="Coupons" component={RewardsStack} />
@@ -54,7 +54,7 @@ const navigation = useNavigation();
       {/* After login */}
       {isLoggedIn && (
         <>
-          <Drawer.Screen name="Profile" component={ProfileScreen} />
+          {/* <Drawer.Screen name="Profile" component={ProfileScreen} /> */}
           <Drawer.Screen name="Bookings" component={BookingStack} />
         </>
       )}

@@ -33,7 +33,7 @@ const MyBookingsScreen = ({ navigation, route }) => {
       }
 
       // 🔹 Build API URL with optional vehicle filter
-      let url = `${BASE_URL}/bookings/?no_pagination=true`;
+      let url = `${BASE_URL}/api/bookings/?no_pagination=true`;
       if (vehicleNumber) {
         url += `&vehicle_number=${vehicleNumber}`;
       }

@@ -4,6 +4,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from '@react-navigation/native';
+// import { API_BASE } from '@env';
+// const BASE_URL = `${API_BASE}`;
 
 const { width } = Dimensions.get('window');
 

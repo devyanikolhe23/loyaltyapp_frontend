@@ -88,8 +88,8 @@ const LoyaltyRewardsScreen = ({ navigation }) => {
     try {
       const [pointsRes, rewardsRes, earnRes] = await Promise.all([
         fetchWithAuth(`${BASE_URL}/api/points/`, { method: "GET" }),
-        fetchWithAuth(`${BASE_URL}/rewards/`, { method: "GET" }),
-        fetchWithAuth(`${BASE_URL}/earn-rules/`, { method: "GET" }),
+        fetchWithAuth(`${BASE_URL}/api/rewards/`, { method: "GET" }),
+        fetchWithAuth(`${BASE_URL}/api/earn-rules/`, { method: "GET" }),
       ]);
 
       // points
