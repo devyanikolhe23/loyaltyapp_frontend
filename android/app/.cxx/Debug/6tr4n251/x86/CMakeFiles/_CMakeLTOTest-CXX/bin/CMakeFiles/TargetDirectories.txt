@@ -1,0 +1,4 @@
+/home/bcs/Music/loyaltyapp1/frontend/loyaltyapp_frontend/android/app/.cxx/Debug/6tr4n251/x86/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/foo.dir
+/home/bcs/Music/loyaltyapp1/frontend/loyaltyapp_frontend/android/app/.cxx/Debug/6tr4n251/x86/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/boo.dir
+/home/bcs/Music/loyaltyapp1/frontend/loyaltyapp_frontend/android/app/.cxx/Debug/6tr4n251/x86/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/edit_cache.dir
+/home/bcs/Music/loyaltyapp1/frontend/loyaltyapp_frontend/android/app/.cxx/Debug/6tr4n251/x86/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/rebuild_cache.dir

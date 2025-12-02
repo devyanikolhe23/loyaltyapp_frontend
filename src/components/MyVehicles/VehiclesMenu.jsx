@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Modal, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-
-const BASE_URL = 'http://192.168.1.15:8000'; // your backend URL
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`; 
 
 const VehiclesMenu = ({ vehicle, navigation, onDelete }) => {
     const [menuVisible, setMenuVisible] = useState(false);

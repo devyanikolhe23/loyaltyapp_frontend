@@ -19,8 +19,6 @@ import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import Entypo from "react-native-vector-icons/Entypo";
 import ProfileImagePicker from "../../components/profile/ProfileImagePicker";
 import { Picker } from "@react-native-picker/picker";
-
-import LanguagePicker from "../LanguagePicker";
 import useAppTranslation from "../../hooks/useAppTranslation"; // ✅ custom translation hook
 import { API_BASE } from '@env';
 const BASE_URL = `${API_BASE}`;
@@ -305,17 +303,6 @@ const ProfileScreen = ({ navigation }) => {
               thumbColor="#fff"
             />
           </View>
-
-          {/* 🔹 Language Selector */}
-          <View style={styles.item}>
-            <Ionicons name="language-outline" size={20} color="#444" />
-            <Text style={styles.itemText}>{t("language")}</Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("LanguagePicker")}
-            >
-              <Entypo name="chevron-right" size={20} color="#888" />
-            </TouchableOpacity>
-          </View> 
         </View>
 
         {/* 🔹 More Section */}
@@ -348,19 +335,21 @@ const ProfileScreen = ({ navigation }) => {
             <Text style={styles.itemText}>{t("referfriend")}</Text>
             <Entypo name="chevron-right" size={20} color="#888" />
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.item}
-            onPress={() => navigation.navigate("MyCouponsScreen")}
-          >
-            <Ionicons name="ticket-outline" size={20} color="#444" />
-            <Text style={styles.itemText}>{("My Coupons")}</Text>
-          </TouchableOpacity>
+
           <TouchableOpacity
             style={styles.item}
             onPress={() => navigation.navigate('MyVehiclesScreen')}
           >
             <Ionicons name="car-outline" size={20} color="#444" />
             <Text style={styles.itemText}>My Vehicles</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => navigation.navigate("MyCouponsScreen")}
+          >
+            <Ionicons name="ticket-outline" size={20} color="#444" />
+            <Text style={styles.itemText}>{("My Coupons")}</Text>
             <Entypo name="chevron-right" size={20} color="#888" />
           </TouchableOpacity>
 

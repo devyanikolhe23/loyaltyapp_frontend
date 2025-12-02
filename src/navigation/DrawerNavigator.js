@@ -1,14 +1,14 @@
 import { Alert, DeviceEventEmitter } from "react-native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import React, { useState, useEffect } from "react";
-import ProfileStack from "./ProfileStack"; // ✅ Keep your stack-based navigation
+import ProfileScreen from "../screens/user/ProfileScreen";
+import ProfileStack from "./ProfileStack";
 import ServicesStack from "./ServiceStack";
 import BookingStack from "./BookingStack";
 import SupportStack from "./SupportStack";
-import RewardsStack from "./RewardsStack"; // ✅ Added from colleague’s version
 import BottomTabs from "./BottomTabs";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
+import RewardsStack from "./RewardsStack";
 import { useNavigation } from "@react-navigation/native";
 import { API_BASE } from "@env";
 
@@ -16,7 +16,7 @@ const BASE_URL = `${API_BASE}`;
 const Drawer = createDrawerNavigator();
 
 export default function DrawerNavigator() {
-  const navigation = useNavigation();
+const navigation = useNavigation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const checkLogin = async () => {
@@ -35,63 +35,9 @@ export default function DrawerNavigator() {
     };
   }, []);
 
-  useEffect(() => {
-    const subscription = DeviceEventEmitter.addListener('userLoggedIn', async () => {
-      const user = await AsyncStorage.getItem('user');
-      setIsLoggedIn(!!user);
-    });
-    return () => subscription.remove();
-  }, []);
-
-  // ✅ Logout Function (no drawerNav needed)
-  const handleLogout = async (navigation) => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Logout",
-        onPress: async () => {
-          try {
-            const accessToken = await AsyncStorage.getItem("access");
-            const refreshToken = await AsyncStorage.getItem("refresh");
-
-            if (refreshToken && accessToken) {
-              await axios.post(
-                `${BASE_URL}/api/logout/`,
-                { refresh: refreshToken },
-                {
-                  headers: {
-                    Authorization: `Bearer ${accessToken}`, // ✅ REQUIRED
-                  },
-                }
-              );
-            }
-
-            // ✅ Clear storage
-            await AsyncStorage.multiRemove(["user", "access", "refresh"]);
-
-            setIsLoggedIn(false);
-
-            // ✅ Redirect to Login Screen
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "Auth", params: { screen: "Login" } }],
-            });
-
-          } catch (error) {
-            console.log("Logout Error => ", error.response?.data || error);
-            // ✅ Even if server fails, logout locally & redirect
-            await AsyncStorage.multiRemove(["user", "access", "refresh"]);
-            setIsLoggedIn(false);
-            DeviceEventEmitter.emit("userLoggedOut");
-
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "Auth", params: { screen: "Login" } }],
-            });
-          }
-        },
-      },
-    ]);
+  const handleLogout = async () => {
+    await AsyncStorage.multiRemove(["user", "access", "refresh", "guest"]);
+    DeviceEventEmitter.emit("userLoggedOut");
   };
 
   return (
@@ -100,7 +46,7 @@ export default function DrawerNavigator() {
     >
       {/* Always visible */}
       <Drawer.Screen name="Home" component={BottomTabs} />
-      <Drawer.Screen name="Profile" component={ProfileStack} />
+      <Drawer.Screen name="Profile" component={ProfileStack} options={{ drawerLabel: "Profile" }} />
       <Drawer.Screen name="Services" component={ServicesStack} />
       <Drawer.Screen name="Support" component={SupportStack} />
       <Drawer.Screen name="Coupons" component={RewardsStack} />
@@ -108,7 +54,7 @@ export default function DrawerNavigator() {
       {/* After login */}
       {isLoggedIn && (
         <>
-          <Drawer.Screen name="Profile" component={ProfileStack} />
+          {/* <Drawer.Screen name="Profile" component={ProfileScreen} /> */}
           <Drawer.Screen name="Bookings" component={BookingStack} />
         </>
       )}

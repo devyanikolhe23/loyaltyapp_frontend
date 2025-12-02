@@ -52,25 +52,18 @@ export default function Header({ title, showBack }) {
         </TouchableOpacity>
       )}
 
-
-      {/* ✅ Title */}
       <Text style={styles.title}>{title}</Text>
 
-      {/* ✅ Notification Icon — only show if no back arrow */}
-      {!showBack ? (
-        <TouchableOpacity onPress={() => navigation.navigate("NotificationSettingsScreen")}>
-          <View>
-            <Icon name="notifications-outline" size={26} color="#333" />
-            {unreadCount > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{unreadCount}</Text>
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
-      ) : (
-        <View style={{ width: 26 }} /> // placeholder for balance
-      )}
+      <TouchableOpacity onPress={() => navigation.navigate("NotificationSettingsScreen")}>
+        <View>
+          <Icon name="notifications-outline" size={28} color="#333" />
+          {unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{unreadCount}</Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
     </View>
   );
 }

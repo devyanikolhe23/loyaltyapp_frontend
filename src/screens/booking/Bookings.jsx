@@ -15,6 +15,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE } from '@env';
 const BASE_URL = `${API_BASE}`;
 
+
 const MyBookingsScreen = ({ navigation, route }) => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,31 +25,30 @@ const MyBookingsScreen = ({ navigation, route }) => {
     try {
       setLoading(true);
 
+      // 🔹 Fetch Token
       const token = await AsyncStorage.getItem("access");
       if (!token) {
         setBookings([]);
         return;
       }
 
-      // ✅ Build base URL
+      // 🔹 Build API URL with optional vehicle filter
       let url = `${BASE_URL}/api/bookings/?no_pagination=true`;
-
-      // ✅ Add optional vehicle filter
       if (vehicleNumber) {
         url += `&vehicle_number=${vehicleNumber}`;
       }
 
-      // ✅ Fetch user bookings
+      // 🚀 Fetch Bookings
       const bookingsRes = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // ✅ Normalize response (handle pagination or array)
+      // 📌 Handle Pagination or Array
       const bookingsData = Array.isArray(bookingsRes.data)
         ? bookingsRes.data
         : bookingsRes.data.results || [];
 
-      // ✅ Format bookings safely
+      // 🔧 Format
       const formattedBookings = bookingsData.map((b) => ({
         ...b,
         serviceName: b.service_title || "Booked",
@@ -56,21 +56,23 @@ const MyBookingsScreen = ({ navigation, route }) => {
 
       setBookings(formattedBookings);
     } catch (error) {
-      console.log("❌ Error loading bookings:", error.response?.data || error.message);
+      console.log(
+        "❌ Error loading bookings:",
+        error.response?.data || error.message
+      );
       setBookings([]);
     } finally {
       setLoading(false);
     }
   };
 
-
-
   useFocusEffect(
     useCallback(() => {
       fetchData();
-    }, [vehicleNumber])
-    //  [vehicleNumber])
+    }, [vehicleNumber]) // 🔥 Re-fetch when vehicle filter changes
   );
+
+
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -160,6 +162,7 @@ const MyBookingsScreen = ({ navigation, route }) => {
     </View>
   );
 };
+
 
 export default MyBookingsScreen;
 

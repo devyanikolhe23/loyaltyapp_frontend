@@ -12,6 +12,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE } from '@env';
 const BASE_URL = `${API_BASE}`;
+
 const statusSteps = [
   { key: "booked", label: "Service Booked", icon: "checkmark-circle-outline" },
   { key: "in_progress", label: "In Progress", icon: "reload-circle-outline" },
@@ -138,55 +139,57 @@ const ServiceStatusScreen = ({ navigation }) => {
         </Text>
         <View style={styles.statusBadge}>
           <Text style={styles.statusText}>{item.status.replace("_", " ").toUpperCase()}</Text>
-        </View>
-      </View>
-
-      {/* Progress Tracker */}
-      {renderProgress(item.status)}
-
-      {/* Service Details */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Service Details</Text>
-        {item.serviceNames && item.serviceNames.length > 0 ? (
-          item.serviceNames.map((name, index) => {
-            const iconName = serviceIcons[name] || "construct-outline";
-            return (
-              <View key={index} style={styles.serviceRow}>
-                <Ionicons name={iconName} size={20} color="#007AFF" style={{ marginRight: 10 }} />
-                <Text style={styles.sectionText}>{name}</Text>
-              </View>
-            );
-          })
-        ) : (
-          <Text style={styles.sectionText}>No services found</Text>
-        )}
       </View>
     </View>
+
+  {/* Progress Tracker */ }
+  { renderProgress(item.status) }
+
+  {/* Service Details */ }
+  <View style={styles.section}>
+    <Text style={styles.sectionTitle}>Service Details</Text>
+  {
+    item.serviceNames && item.serviceNames.length > 0 ? (
+      item.serviceNames.map((name, index) => {
+        const iconName = serviceIcons[name] || "construct-outline";
+        return (
+          <View key={index} style={styles.serviceRow}>
+            <Ionicons name={iconName} size={20} color="#007AFF" style={{ marginRight: 10 }} />
+            <Text style={styles.sectionText}>{name}</Text>
+          </View>
+        );
+      })
+    ) : (
+    <Text style={styles.sectionText}>No services found</Text>
+  )
+  }
+      </View >
+    </View >
   );
 
-  return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Service Status</Text>
-        <Ionicons name="notifications-outline" size={22} color="#000" />
-      </View>
-
-      {loading ? (
-        <ActivityIndicator size="large" color="#007AFF" />
-      ) : (
-        <FlatList
-          data={bookings}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderBooking}
-          contentContainerStyle={{ paddingBottom: 20 }}
-        />
-      )}
+return (
+  <View style={styles.container}>
+    {/* Header */}
+    <View style={styles.header}>
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <Ionicons name="arrow-back" size={24} color="#000" />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>Service Status</Text>
+      <Ionicons name="notifications-outline" size={22} color="#000" />
     </View>
-  );
+
+    {loading ? (
+      <ActivityIndicator size="large" color="#007AFF" />
+    ) : (
+      <FlatList
+        data={bookings}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderBooking}
+        contentContainerStyle={{ paddingBottom: 20 }}
+      />
+    )}
+  </View>
+);
 };
 
 export default ServiceStatusScreen;
@@ -212,6 +215,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 14, fontWeight: "700", marginBottom: 6 },
   sectionText: { color: "#333", fontSize: 14 },
   serviceRow: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
+
 });
 
 

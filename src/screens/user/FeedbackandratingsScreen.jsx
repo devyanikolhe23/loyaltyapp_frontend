@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+// import { API_BASE } from '@env';
+// const BASE_URL = `${API_BASE}`;
 
 const FeedbackForm = () => {
   const [overallExperience, setOverallExperience] = useState(0);

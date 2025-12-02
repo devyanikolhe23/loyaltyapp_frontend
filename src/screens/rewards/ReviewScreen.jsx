@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_BASE } from "@env";
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`;
 
 const ReviewScreen = ({ navigation }) => {
   const [rating, setRating] = useState("");
@@ -15,7 +16,7 @@ const ReviewScreen = ({ navigation }) => {
     }
 
     const access = await AsyncStorage.getItem("access");
-    const res = await fetch(`${API_BASE}/reviews/`, {
+    const res = await fetch(`${BASE_URL}/reviews/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

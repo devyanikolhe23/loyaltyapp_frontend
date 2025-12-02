@@ -14,6 +14,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE } from '@env';
 const BASE_URL = `${API_BASE}`;
+
 const BookingDetailsScreen = ({ route, navigation }) => {
   const { booking } = route.params || {};
   const isCancelled = booking?.status === "cancelled"; // ✅ Detect cancelled state
@@ -32,7 +33,7 @@ const BookingDetailsScreen = ({ route, navigation }) => {
               const token = await AsyncStorage.getItem("access");
 
               await axios.post(
-                `${BASE_URL}/bookings/${booking.id}/cancel/`,
+                `${BASE_URL}/api/bookings/${booking.id}/cancel/`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
               );
@@ -93,8 +94,6 @@ const BookingDetailsScreen = ({ route, navigation }) => {
           </Text>
         </View>
 
-
-
         {/* Vehicle Details */}
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Vehicle Information</Text>
@@ -112,7 +111,7 @@ const BookingDetailsScreen = ({ route, navigation }) => {
             ]}
             disabled={isCancelled}
             onPress={() =>
-              navigation.navigate("Services", {
+              navigation.navigate("ServiceStack", {
                 screen: "BookingServiceScreen",
                 params: { isEdit: true, booking },
               })

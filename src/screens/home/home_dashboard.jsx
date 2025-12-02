@@ -15,10 +15,9 @@ import { useNavigation } from "@react-navigation/native";
 import Header from '../../components/Header';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { Alert, View, Text, ActivityIndicator } from "react-native";
-import { useEffect, useState } from "react";
-import { useNavigation } from "@react-navigation/native";
 import { API_BASE } from "@env"; // Use env for consistency
+
+const BASE_URL = `${API_BASE}`;
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -39,13 +38,13 @@ export default function HomeScreen() {
         const token = await AsyncStorage.getItem("access");
 
         // Fetch recalls
-        const recallsRes = await axios.get(`${API_BASE}/api/home/recalls`, {
+        const recallsRes = await axios.get(`${BASE_URL}/api/home/recalls`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         setRecalls(recallsRes.data || []);
 
         // Fetch promotions
-        const promoRes = await axios.get(`${API_BASE}/api/promotion-banners/`, {
+        const promoRes = await axios.get(`${BASE_URL}/api/promotion-banners/`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         if (Array.isArray(promoRes.data)) {
@@ -92,8 +91,8 @@ export default function HomeScreen() {
 
       const endpoint =
         item.status === "completed"
-          ? `${API_BASE}/api/vehicle-recalls/${item.id}/service_again/`
-          : `${API_BASE}/api/vehicle-recalls/${item.id}/schedule_service/`;
+          ? `${BASE_URL}/api/vehicle-recalls/${item.id}/service_again/`
+          : `${BASE_URL}/api/vehicle-recalls/${item.id}/schedule_service/`;
 
       try {
         const response = await axios.post(endpoint, {}, {
@@ -319,11 +318,26 @@ return (
 );
 }
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
-  loader: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F9FAFB' },
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
 
-  // 🔹 Recall Slider Styles
-  recallsSlider: { marginTop: 10, paddingLeft: 20 },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+  },
+
+  /* --------------------------------------
+     🔹 RECALL SLIDER
+  -------------------------------------- */
+  recallsSlider: {
+    marginTop: 10,
+    paddingLeft: 20,
+  },
+
   recallCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -334,126 +348,211 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 3,
     elevation: 2,
+  },
 
-    banner: {
-      marginHorizontal: 20,
-      borderRadius: 16,
-      overflow: 'hidden',
-      backgroundColor: '#000',
-    },
-    recallHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    recallTitle: { fontSize: 16, fontWeight: '600', color: '#111' },
-    recallTag: {
-      color: '#fff',
-      paddingHorizontal: 10,
-      paddingVertical: 3,
-      borderRadius: 10,
-      fontWeight: '700',
-      fontSize: 12,
-    },
-    recallVehicle: { color: '#6B7280', marginTop: 6, fontSize: 13 },
-    recallDesc: { color: '#374151', marginTop: 6, lineHeight: 18 },
-    completedText: { color: '#16A34A', marginTop: 6, fontWeight: '500' },
-    recallBtnRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
-    recallButton: {
-      flex: 1,
-      height: 38,
-      borderRadius: 8,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginHorizontal: 4,
-      alignSelf: 'flex-start',
-    },
-    bookNowText: {
-      color: '#fff',
-      fontWeight: '600',
-    },
+  recallHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
 
-    sectionTitle: {
-      marginTop: 25,
-      marginLeft: 20,
-      fontSize: 18,
-      fontWeight: '600',
-    },
+  recallTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111',
+  },
 
-    quickActions: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginHorizontal: 20,
-      marginTop: 15,
-    },
-    recallBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+  recallTag: {
+    color: '#fff',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 10,
+    fontWeight: '700',
+    fontSize: 12,
+  },
 
-    // 🔹 Your Original Styles (Unchanged)
-    banner: { marginHorizontal: 20, borderRadius: 16, overflow: 'hidden', backgroundColor: '#000' },
-    bannerImage: { width: '100%', height: 160, resizeMode: 'cover', position: 'absolute' },
-    bannerOverlay: { backgroundColor: 'rgba(0,0,0,0.5)', padding: 20, height: 160, justifyContent: 'center' },
-    bannerTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
-    bannerSubtitle: { color: '#fff', marginTop: 5 },
-    bookNowButton: { backgroundColor: '#2B70F7', padding: 10, marginTop: 15, borderRadius: 8, alignSelf: 'flex-start' },
-    bookNowText: { color: '#fff', fontWeight: '600' },
-    sectionTitle: { marginTop: 25, marginLeft: 20, fontSize: 18, fontWeight: '600' },
-    quickActions: { flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 20, marginTop: 15 },
-    quickActionCard: {
-      backgroundColor: '#fff',
-      width: '48%',
-      padding: 15,
-      borderRadius: 12,
-      alignItems: 'center',
-      shadowColor: '#000',
-      shadowOpacity: 0.05,
-      shadowRadius: 3,
-      elevation: 2,
-    },
-    quickActionText: {
-      marginTop: 8,
-      fontWeight: '500',
-    },
+  recallVehicle: {
+    color: '#6B7280',
+    marginTop: 6,
+    fontSize: 13,
+  },
 
-    promotions: {
-      marginTop: 15,
-      paddingLeft: 20,
-    },
-    promoCard: {
-      backgroundColor: '#fff',
-      borderRadius: 12,
-      padding: 10,
-      marginRight: 15,
-      width: 220,
-    },
-    promoImage: {
-      width: '100%',
-      height: 110,
-      borderRadius: 8,
-    },
-    promoTitle: {
-      fontWeight: '600',
-      marginTop: 10,
-    },
-    promoText: {
-      color: '#555',
-      marginTop: 4,
-    },
+  recallDesc: {
+    color: '#374151',
+    marginTop: 6,
+    lineHeight: 18,
+  },
 
-    exploreGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      marginHorizontal: 20,
-      marginTop: 15,
-      justifyContent: 'space-between',
-    },
-    exploreCard: {
-      backgroundColor: '#fff',
-      width: '48%',
-      padding: 15,
-      borderRadius: 12,
-      marginBottom: 15,
-      alignItems: 'center',
-      shadowColor: '#000',
-      shadowOpacity: 0.05,
-      shadowRadius: 3,
-      elevation: 2,
-    },
-    exploreText: { marginTop: 8, fontWeight: '500' },
+  completedText: {
+    color: '#16A34A',
+    marginTop: 6,
+    fontWeight: '500',
+  },
+
+  recallBtnRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+
+  recallButton: {
+    flex: 1,
+    height: 38,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 4,
+  },
+
+  recallBtnText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+
+  /* --------------------------------------
+     🔹 BOOK NOW BANNER
+  -------------------------------------- */
+  banner: {
+    marginHorizontal: 20,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#000',
+  },
+
+  bannerImage: {
+    width: '100%',
+    height: 160,
+    resizeMode: 'cover',
+    position: 'absolute',
+  },
+
+  bannerOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 20,
+    height: 160,
+    justifyContent: 'center',
+  },
+
+  bannerTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+
+  bannerSubtitle: {
+    color: '#fff',
+    marginTop: 5,
+  },
+
+  bookNowButton: {
+    backgroundColor: '#2B70F7',
+    padding: 10,
+    marginTop: 15,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+
+  bookNowText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+
+  /* --------------------------------------
+     🔹 SECTION TITLES
+  -------------------------------------- */
+  sectionTitle: {
+    marginTop: 25,
+    marginLeft: 20,
+    fontSize: 18,
+    fontWeight: '600',
+  },
+
+  /* --------------------------------------
+     🔹 QUICK ACTIONS
+  -------------------------------------- */
+  quickActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: 20,
+    marginTop: 15,
+  },
+
+  quickActionCard: {
+    backgroundColor: '#fff',
+    width: '48%',
+    padding: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+
+  quickActionText: {
+    marginTop: 8,
+    fontWeight: '500',
+  },
+
+  /* --------------------------------------
+     🔹 PROMOTIONS
+  -------------------------------------- */
+  promotions: {
+    marginTop: 15,
+    paddingLeft: 20,
+  },
+
+  promoCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 10,
+    marginRight: 15,
+    width: 220,
+  },
+
+  promoImage: {
+    width: '100%',
+    height: 110,
+    borderRadius: 8,
+  },
+
+  promoTitle: {
+    fontWeight: '600',
+    marginTop: 10,
+  },
+
+  promoText: {
+    color: '#555',
+    marginTop: 4,
+  },
+
+  /* --------------------------------------
+     🔹 EXPLORE GRID
+  -------------------------------------- */
+  exploreGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: 20,
+    marginTop: 15,
+    justifyContent: 'space-between',
+  },
+
+  exploreCard: {
+    backgroundColor: '#fff',
+    width: '48%',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 15,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+
+  exploreText: {
+    marginTop: 8,
+    fontWeight: '500',
   },
 });

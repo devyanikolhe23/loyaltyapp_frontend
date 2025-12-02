@@ -13,8 +13,11 @@ import {
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
+import { API_BASE } from '@env';
+const BASE_URL = `${API_BASE}`;
 
-const BASE_URL = "http://192.168.1.15:8000/api";
+
+
 const { width } = Dimensions.get("window");
 
 export default function PromotionsPage({ route = {} }) {
@@ -45,8 +48,8 @@ export default function PromotionsPage({ route = {} }) {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
       const [bannerRes, featuredRes] = await Promise.all([
-        axios.get(`${BASE_URL}/promotion-banners/`, { headers }),
-        axios.get(`${BASE_URL}/featured-promotions/`, { headers }),
+        axios.get(`${BASE_URL}/api/promotion-banners/`, { headers }),
+        axios.get(`${BASE_URL}/api/featured-promotions/`, { headers }),
       ]);
 
       // If route passed a promo, prefer it (it should already be a full object)
@@ -99,7 +102,7 @@ export default function PromotionsPage({ route = {} }) {
     // If offer.services is an array of IDs, fetch them
     if (Array.isArray(offer.services) && offer.services.length && typeof offer.services[0] === "number") {
       try {
-        const requests = offer.services.map((id) => axios.get(`${BASE_URL}/services/${id}/`));
+        const requests = offer.services.map((id) => axios.get(`${BASE_URL}/api/services/${id}/`));
         const responses = await Promise.all(requests);
         return responses.map((res) => ({
           id: res.data.id,
@@ -114,7 +117,7 @@ export default function PromotionsPage({ route = {} }) {
 
     // Last resort: try to fetch offer details from API to see fields
     try {
-      const res = await axios.get(`${BASE_URL}/offers/${offer.id}/`);
+      const res = await axios.get(`${BASE_URL}/api/offers/${offer.id}/`);
       const fetchedOffer = res.data;
       // try the above logic again
       if (Array.isArray(fetchedOffer.services_with_details) && fetchedOffer.services_with_details.length) {
@@ -132,7 +135,7 @@ export default function PromotionsPage({ route = {} }) {
         }));
       }
       if (Array.isArray(fetchedOffer.services) && typeof fetchedOffer.services[0] === "number") {
-        const requests = fetchedOffer.services.map((id) => axios.get(`${BASE_URL}/services/${id}/`));
+        const requests = fetchedOffer.services.map((id) => axios.get(`${BASE_URL}/api/services/${id}/`));
         const responses = await Promise.all(requests);
         return responses.map((res) => ({
           id: res.data.id,
@@ -169,7 +172,7 @@ export default function PromotionsPage({ route = {} }) {
     }
 
     // Logged-in user: proceed
-    handleBannerBookNow(promoObj);
+    // handleBannerBookNow(promoObj);
 
     // promoObj should be the full promotion object (banner or featured promo)
     const promo = promoObj || banner;
@@ -191,7 +194,7 @@ export default function PromotionsPage({ route = {} }) {
       if (typeof offer === "number" || typeof offer === "string") {
         // offer is an ID; fetch full offer
         try {
-          const offerRes = await axios.get(`${BASE_URL}/offers/${offer}/`);
+          const offerRes = await axios.get(`${BASE_URL}/api/offers/${offer}/`);
           offer = offerRes.data;
         } catch (err) {
           console.log("Error fetching offer:", err);

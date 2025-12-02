@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ImageBackground, Alert } from 'react-native';
 import { API_BASE } from '@env';
 const BASE_URL = `${API_BASE}`;
+
 const RegistrationScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -22,7 +23,7 @@ const RegistrationScreen = ({ navigation }) => {
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(email.trim())) {
       Alert.alert('Error', 'Enter a valid email address.');
       return;
     }
@@ -55,12 +56,12 @@ const RegistrationScreen = ({ navigation }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username,
-          email,
-          phone_number,
+          username: username.trim(),
+          email: email.trim(),
+          phone_number: phone_number.trim(),
           password,
           confirm_password,
-          referral_code: referralCode,
+          referral_code: referralCode.trim(),
         }),
       });
 

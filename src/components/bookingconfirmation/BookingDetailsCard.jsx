@@ -1,31 +1,30 @@
+
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import DetailRow from "./DetailRow";
 
 export default function BookingDetailsCard({
   booking,
-  totalPrice,
-  originalPrice,
-  couponApplied,
   selectedServices = [],
+  totalPrice = 0,
   discount = 0,
   offerTitle = "",
   promo = null,
   source = "",
 }) {
   if (!booking) return null;
-  // Prefer services from previous screen; fallback to backend
+
+  // Pick services safely: must be objects
   const services =
-    selectedServices.length > 0
+    selectedServices?.length > 0 && typeof selectedServices[0] === "object"
       ? selectedServices
-      : booking?.services && Array.isArray(booking.services)
-        ? booking.services
-        : [];
+      : booking?.selectedServices?.length > 0
+      ? booking.selectedServices
+      : [];
 
-  const finalPrice = totalPrice || booking?.total_price || 0;
-  const showDiscount = originalPrice && originalPrice > finalPrice;
+  console.log("Services to display:", services);
 
-  // Detect Promotion / Offer
-  const isPromotion = !!promo;
+  // Determine applied label if discount exists
   let appliedLabel = "";
   if (discount > 0) {
     if (source === "promotion") {
@@ -37,23 +36,20 @@ export default function BookingDetailsCard({
     }
   }
 
-
-  // Calculate total dynamically
+  // Calculate totals
   const computedTotal = services.reduce(
-    (sum, s) => sum + Number(s.price || 0),
+    (sum, s) => sum + parseFloat(s?.price || 0),
     0
   );
-
   const baseTotal = Number(totalPrice) || computedTotal;
-
   const discountAmount = discount ? (baseTotal * discount) / 100 : 0;
   const finalTotal = baseTotal - discountAmount;
 
   return (
     <View style={styles.card}>
-      <Text style={styles.sectionTitle}>Booking Summary</Text>
+      <Text style={styles.title}>Booking Details</Text>
 
-      {/* ✅ Applied Offer / Promotion */}
+      {/* Applied Offer / Promotion */}
       {discount > 0 && appliedLabel !== "" && (
         <DetailRow
           label={appliedLabel}
@@ -61,180 +57,58 @@ export default function BookingDetailsCard({
         />
       )}
 
-      {/* ✅ Services Section */}
-      <Text style={styles.serviceText}>
-        Service: {booking?.service_title}
-      </Text>
-
-      {Array.isArray(booking?.services) && booking.services.length > 1 && (
-        <Text style={[styles.serviceText, { color: "#666", marginTop: 4 }]}>
-          + {booking.services.length} services included
-        </Text>
-      )}
-
-      {services.length > 0 && (
-        <View style={{ marginVertical: 8 }}>
-          {services.map((s) => (
-            <DetailRow key={s.id} label={s.title} value={`₹${s.price}`} />
-          ))}
-        </View>
-      )}
-
-      <View style={styles.divider} />
-
-      {/* ✅ Price Breakdown */}
-      <View style={styles.priceRow}>
-        <Text style={styles.label}>Subtotal</Text>
-        <Text style={styles.value}>₹{parseFloat(finalPrice).toFixed(2)}</Text>
+      {/* Services */}
+      <View style={{ marginBottom: 10 }}>
+        <Text style={{ fontWeight: "bold", marginBottom: 5 }}>Services:</Text>
+        {services.length > 0 ? (
+          services.map((s, index) => (
+            <DetailRow
+              key={s?.id ? `${s.id}-${index}` : index} // unique key
+              label={s?.title || "N/A"}
+              value={`₹${s?.price ? Number(s.price).toFixed(2) : "0.00"}`}
+            />
+          ))
+        ) : (
+          <DetailRow label="Services" value="N/A" />
+        )}
       </View>
 
-      {showDiscount && (
-        <>
-          <View style={styles.priceRow}>
-            <Text style={styles.label}>Original Price</Text>
-            <Text style={[styles.value, styles.strikethrough]}>
-              ₹{parseFloat(originalPrice).toFixed(2)}
-            </Text>
-          </View>
-          <View style={styles.priceRow}>
-            <Text style={[styles.label, styles.discountLabel]}>Discount Applied</Text>
-            <Text style={[styles.value, styles.saved]}>
-              -₹{(originalPrice - finalPrice).toFixed(2)}
-            </Text>
-          </View>
-        </>
-      )}
-
-      {couponApplied && (
-        <View style={styles.couponRow}>
-          <Text style={styles.couponText}>Coupon Applied: {couponApplied}</Text>
-        </View>
-      )}
-
-      {/* ✅ Final Price */}
-      <View style={styles.finalPriceRow}>
-        <Text style={styles.finalLabel}>Final Amount</Text>
-        <Text style={styles.finalPrice}>
-          ₹{parseFloat(finalPrice).toFixed(2)}
-        </Text>
-      </View>
-
-      <View style={styles.divider} />
-
-      {/* ✅ Vehicle Info */}
+      {/* Booking info */}
+      <DetailRow label="Date" value={booking?.appointment_date || "N/A"} />
+      <DetailRow label="Time" value={booking?.appointment_time || "N/A"} />
       <DetailRow
         label="Vehicle"
-        value={`${booking.vehicle_make} ${booking.vehicle_model} (${booking.vehicle_year})`}
+        value={`${booking?.vehicle_make || ""} ${booking?.vehicle_model || ""} (${booking?.vehicle_year || ""})`}
       />
-      <DetailRow label="Vehicle Number" value={booking.vehicle_number} />
+      <DetailRow label="Vehicle Number" value={booking?.vehicle_number || "N/A"} />
 
-      {/* ✅ Booking Info */}
-      <Text style={styles.info}>Booking ID: #{booking?.id}</Text>
-      <Text style={styles.info}>Date: {booking?.appointment_date}</Text>
-      <Text style={styles.info}>Time: {booking?.appointment_time}</Text>
-      <Text style={styles.info}>
-        Status: <Text style={styles.status}>{booking?.status}</Text>
-      </Text>
+      {/* Price breakdown */}
+      <DetailRow label="Base Price" value={`₹ ${baseTotal.toFixed(2)}`} />
+      {discount > 0 && <DetailRow label="Discount" value={`- ₹ ${discountAmount.toFixed(2)}`} />}
+      <DetailRow label="Total Price" value={`₹ ${finalTotal.toFixed(2)}`} />
     </View>
-  );}
+  );
+}
+
 const styles = StyleSheet.create({
-      card: {
-        backgroundColor: "#fff",
-        borderRadius: 16,
-        padding: 16,
-        marginVertical: 10,
-        elevation: 4,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-      },
-      sectionTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        marginBottom: 12,
-        color: "#1E3A8A",
-      },
-      serviceText: {
-        fontSize: 15,
-        color: "#333",
-        marginBottom: 6,
-      },
-      divider: {
-        height: 1,
-        backgroundColor: "#E5E7EB",
-        marginVertical: 12,
-      },
-      priceRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginBottom: 6,
-      },
-      label: {
-        fontSize: 15,
-        color: "#555",
-      },
-      value: {
-        fontSize: 15,
-        fontWeight: "600",
-        color: "#000",
-      },
-      strikethrough: {
-        textDecorationLine: "line-through",
-        color: "#999",
-      },
-      discountLabel: {
-        color: "#16A34A",
-        fontWeight: "600",
-      },
-      saved: {
-        color: "#16A34A",
-        fontWeight: "700",
-      },
-      couponRow: {
-        backgroundColor: "#E8F5E9",
-        padding: 10,
-        borderRadius: 8,
-        marginVertical: 10,
-        alignItems: "center",
-      },
-      couponText: {
-        color: "#1B5E20",
-        fontWeight: "700",
-        fontSize: 14,
-      },
-      finalPriceRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginTop: 12,
-        paddingTop: 12,
-        borderTopWidth: 1,
-        borderTopColor: "#E5E7EB",
-      },
-      finalLabel: {
-        fontSize: 18,
-        fontWeight: "800",
-        color: "#000",
-      },
-      finalPrice: {
-        fontSize: 22,
-        fontWeight: "800",
-        color: "#16A34A",
-      },
-      info: {
-        fontSize: 14,
-        color: "#555",
-        marginTop: 6,
-      },
-      status: {
-        fontWeight: "600",
-        textTransform: "capitalize",
+  card: {
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 12,
+    marginVertical: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+  },
   title: {
     fontSize: 16,
     fontWeight: "700",
     marginBottom: 10,
-      }
-    },});
+  },
+});
+
+
 // import React from "react";
 // import { View, Text, StyleSheet } from "react-native";
 // import DetailRow from "./DetailRow";
