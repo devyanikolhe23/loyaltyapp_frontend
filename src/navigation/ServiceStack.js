@@ -21,7 +21,11 @@ export default function ServiceStack() {
         component={ServiceDetailScreen}
         options={{ headerShown: false }}
       />
-      <Stack.Screen name="BookingServiceScreen" component={BookingServiceScreen} />
+       <Stack.Screen
+        name="BookingServiceScreen"
+        component={BookingServiceScreen}
+        options={{ title: "Edit Booking" }}
+      />
       <Stack.Screen name="BookingConfirmationScreen" component={BookingConfirmationScreen} />
       <Stack.Screen name="ServiceStatusScreen" component={ServiceStatusScreen} />
       <Stack.Screen name="PromotionDetails" component={PromotionDetailsScreen}/>

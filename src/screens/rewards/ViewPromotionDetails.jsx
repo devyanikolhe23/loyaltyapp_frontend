@@ -54,14 +54,22 @@ export default function ViewPromotionDetails() {
 
       return;
     }
+    const servicesWithDetails = promo.offer?.services_with_details || [];
 
-    // Logged-in user: navigate to booking
     navigation.navigate("BookingServiceScreen", {
       promo,
-      preselectedServices: promo.services_with_details,
-      discount: promo.offer?.discount_percentage,
+      preselectedServices: servicesWithDetails.map(s => ({
+        id: s.id,
+        title: s.title,
+        price: s.price
+      })),
+      discount: parseFloat(promo.offer?.discount_percentage) || 0,
+      offerTitle: promo.offer?.title || promo.title,
+      lockedServiceIds: servicesWithDetails.map(s => s.id),  // optional for locking
+      lockSelected: true, // optional: to prevent removal
       source: "promotion",
     });
+
   };
 
   return (

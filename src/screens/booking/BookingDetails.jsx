@@ -111,7 +111,7 @@ const BookingDetailsScreen = ({ route, navigation }) => {
             ]}
             disabled={isCancelled}
             onPress={() =>
-              navigation.navigate("ServiceStack", {
+                navigation.navigate("Services", {
                 screen: "BookingServiceScreen",
                 params: { isEdit: true, booking },
               })

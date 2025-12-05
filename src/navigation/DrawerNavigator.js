@@ -3,7 +3,7 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import React, { useState, useEffect } from "react";
 import ProfileScreen from "../screens/user/ProfileScreen";
 import ProfileStack from "./ProfileStack";
-import ServicesStack from "./ServiceStack";
+import ServiceStack from "./ServiceStack";
 import BookingStack from "./BookingStack";
 import SupportStack from "./SupportStack";
 import BottomTabs from "./BottomTabs";
@@ -47,7 +47,7 @@ const navigation = useNavigation();
       {/* Always visible */}
       <Drawer.Screen name="Home" component={BottomTabs} />
       <Drawer.Screen name="Profile" component={ProfileStack} options={{ drawerLabel: "Profile" }} />
-      <Drawer.Screen name="Services" component={ServicesStack} />
+      <Drawer.Screen name="Services" component={ServiceStack} />
       <Drawer.Screen name="Support" component={SupportStack} />
       <Drawer.Screen name="Coupons" component={RewardsStack} />
 
